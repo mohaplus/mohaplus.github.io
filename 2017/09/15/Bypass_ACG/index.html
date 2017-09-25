@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Bypass ACG | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Bypass ACG">
+<meta property="og:url" content="http://yoursite.com/2017/09/15/Bypass_ACG/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。">
+<meta property="og:image" content="http://yoursite.com/bypassAcg/DuplicateHandle.png">
+<meta property="og:updated_time" content="2017-09-25T06:54:15.837Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bypass ACG">
+<meta name="twitter:description" content="P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。">
+<meta name="twitter:image" content="http://yoursite.com/bypassAcg/DuplicateHandle.png">
+  
+    <link rel="alternate" href="/atom.xml" title="么哈么哈" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="Flux RSS"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Rechercher"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Bypass_ACG" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/15/Bypass_ACG/" class="article-date">
+  <time datetime="2017-09-15T02:59:10.179Z" itemprop="datePublished">2017-09-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Bypass ACG
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。</p>
+<a id="more"></a>
+<h2 id="DuplicateHandle"><a href="#DuplicateHandle" class="headerlink" title="DuplicateHandle"></a>DuplicateHandle</h2><p>句柄是用于在进程中唯一标识用户对象的标志。其分为实句柄和虚句柄两种，实句柄是用户态对象在内核中的唯一标识符。为了程序的稳定性考虑，每个进程对象都维护了一个内核对象表，从而可以直接通过本进程内的内核对象表对内核对象进行访问，这个进程内内核对象表的索引就是伪句柄，因为其只在当前进程内有效。</p>
+<p>有时候程序需要获取本地句柄对应的全局实句柄或者本地句柄对应的远程句柄以实现进程通信等功能。Windows 为这个操作提供了一个 API 。</p>
+<p>DuplicateHandle 函数用于将本地句柄转化为可以在进程间通信的实句柄或远程句柄。函数原型如下所示</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function">BOOL WINAPI <span class="title">DuplicateHandle</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">  _In_  HANDLE   hSourceProcessHandle,</span></span></div><div class="line"><span class="function"><span class="params">  _In_  HANDLE   hSourceHandle,</span></span></div><div class="line"><span class="function"><span class="params">  _In_  HANDLE   hTargetProcessHandle,</span></span></div><div class="line"><span class="function"><span class="params">  _Out_ LPHANDLE lpTargetHandle,</span></span></div><div class="line"><span class="function"><span class="params">  _In_  DWORD    dwDesiredAccess,</span></span></div><div class="line"><span class="function"><span class="params">  _In_  BOOL     bInheritHandle,</span></span></div><div class="line"><span class="function"><span class="params">  _In_  DWORD    dwOptions</span></span></div><div class="line"><span class="function"><span class="params">)</span></span>;</div></pre></td></tr></table></figure>
+<ul>
+<li>第一个参数 <em>hSourceProcessHandle</em> 为将要被转化的伪句柄所在的进程句柄。这个进程句柄必须具备 PROCESS_DUP_HANDLE 权限<ul>
+<li>第二个参数 <em>hSourceHandle</em> 表示将要被转化的伪句柄，该伪句柄仅在 <em>hSourceProcessHandle</em> 进程对象中生效</li>
+<li>第三个参数 <em>hTargetProcessHandle</em> 表示转化后句柄应该所在的进程句柄。同样的，这个进程句柄必须具备 PROCESS_DUP_HANDLE 权限</li>
+<li>第四个参数 <em>lpTargetHandle</em> 是一个地址参数，用于接收转化后的返回值。这个返回值在 <em>hTargetProcessHandle</em> 中是合法的。</li>
+<li>第五个参数 <em>dwDesiredAccess</em> 复制出来的句柄的访问权限</li>
+<li>第六个参数 <em>bInheritHandle</em> 复制出的句柄是否可以被继承，如果这个参数为真，那么该句柄值可以被所有 targetProcess 进程树使用。</li>
+<li>第七个参数 <em>dwOptions</em> </li>
+</ul>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th style="text-align:center">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DUPLICATE_CLOSE_SOURCE 0x00000001</td>
+<td style="text-align:center">Closes the source handle. This occurs regardless of any error status returned.</td>
+</tr>
+<tr>
+<td>DUPLICATE_SAME_ACCESS 0x00000002</td>
+<td style="text-align:center">Ignores the dwDesiredAccess parameter. The duplicate handle has the same access as the source handle.</td>
+</tr>
+</tbody>
+</table>
+<p>如果设定了 DUPLICATE_SAME_ACCESS 标志，则告诉DuplicateHandle 函数，你希望目标进程的句柄拥有与源进程句柄相同的访问屏蔽。使用该标志将使DuplicateHandle忽略它的dwDesiredAccess参数。</p>
+<p>如果设定了DUPLICATE_CLOSE_SOURCE标志，则可以关闭源进程中的句柄。该标志使得一个进程能够很容易地将内核对象传递给另一个进程。当使用该标志时，内核对象的使用计数不会受到影响。</p>
+<p>如果传入的参数是一个进程对象或者线程对象的伪句柄，则函数会将其转化为对应的实句柄，如果是文件对象等句柄则会转化为远程句柄。如果 <em>lpTargetHandle</em> 参数为 NULL，那么函数进行复制句柄的操作，但是并不将值返回给调用者。这种情况仅仅是为了对之前 API 的兼容。</p>
+<p>duplicate handle 与原 handle 指向的是同一个内核对象，在这两个 handle 上的操作都会对这个内核对象产生影响。</p>
+<p>SourceProcess 或者 TargetProcess 都可以调用 DuplicateHandle 函数。如果 DuplicateHandle 的调用者不是 targetProcess 则需要将返回的结果传递给 targetProcess。</p>
+<p>DumplicateHandle 可以用于在 64位进程和 32位进程之间复制句柄。当然返回的句柄使用起来会有一定的限制。</p>
+<p>DumplicateHandle 函数实际的工作逻辑是将 SourceProcess 中目标句柄对应内核对象表中的数据复制到 TargetProcess 的内核对象表中，并返回句柄。这里引用 [2] 中的例子来说明 DumplicateHandle 的工作原理</p>
+<p>有三个进程 S、T、C，其中 C 是函数DumplicateHandle 实际调用者，S 是 sourceProcess，T 是 targetProcess。按照函数的调用条件，C 中首先应该有 S、T 两个进程的句柄，且句柄的访问权限为 PROCESS_DUP_HANDLE 。S 中拥有某对象 O 的句柄 hO， 现在需要调用 Dumplicate 函数为 T 进程赋予 O 的访问权限。<br>那么在调用前后 S、T、C 三个进程的 内核对象表简单表示如下</p>
+<p><img src="/bypassAcg/DuplicateHandle.png" alt=""></p>
+<p>如图所示，在调用之前 C 进程中拥有 T、S 的句柄 hS、hT，S 进程中拥有对象 O 的句柄 hO，T 进程没有句柄；调用函数之后 C 进程和 S 进程没有变化，而 T 进程的全局对象表中则新加入了 hO 的复制品 h’O ，从而 T 也获得了 O 的访问权限。但是此时 进程 T 并没有得到通知，并不知道它已经可以访问 O 对象了，因此 DumplicateHandle 函数需要返回 h’O ，并由 C 将h’O 传递给 T。</p>
+<h2 id="ACG-amp-DuplicateHandle"><a href="#ACG-amp-DuplicateHandle" class="headerlink" title="ACG &amp; DuplicateHandle"></a>ACG &amp; DuplicateHandle</h2><p>ACG 引入之后，Edge 分成了两个进程，JIT 进程和 Render 进程，其中可执行页部分通过 JIT 进程写入 Render 进程中。JIT 进程中首先需要获取 Render 进程的句柄，这个句柄是 Render 进程通过 LRPC 通信发送过去的，但是首先需要调用 DumplicateHandle 函数将 Render 进程的访问句柄授权给 JIT 进程。按照之前的描述，DumplicateHandle 函数的调用者 Render 中必须先拥有 Render 和 JIT 的 DUPLICATE_SAME_ACCESS 权限的句柄才行。而拥有 DUPLICATE_SAME_ACCESS 权限的句柄就可以转化为拥有所有全的句柄。</p>
+<p>Render 进程的调用为<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DuplicateHandle( GetCurrentProcess(), GetCurrentProcess(), JITHandle, &amp;QWORD, ...)</div></pre></td></tr></table></figure></p>
+<p>将当前进程中的 “当前进程句柄” 复制到 JIT 进程中去。</p>
+<p>如果攻击者可以获取到 JITHandle，并且按照如下形式调用，将 JIT 进程中的 “当前进程句柄”复制到当前进程中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DuplicateHandle( JITHandle, GetCurrentProcess(), GetCurrentProcess(), &amp;QWORD, <span class="number">0</span>, <span class="number">0</span>, DUPLICATE_SAME_ACCESS)</div></pre></td></tr></table></figure></p>
+<p>显然 JIT 进程的“当前进程句柄”是拥有完整权限的，而 DUPLICATE_SAME_ACCESS 参数又保证了复制过来的句柄与原句柄拥有相同权限，即也拥有对 JIT 进程的完全权限。</p>
+<h2 id="hTargetProcessHandle"><a href="#hTargetProcessHandle" class="headerlink" title="hTargetProcessHandle"></a>hTargetProcessHandle</h2><p>因此我们目前的工作只要能够找到 JIT 进程在 Render 进程中的 Hnadle 就可以获得对 JIT 进程的实际控制。 </p>
+<p>在  Edge 中实际测试。使用微软提供的工具 PLMDebug.exe（process lifecycle management）可以监控整个进程的生命周期，可以在 Edge 进程启动阶段就使用调试器挂载。使用命令<br><code>plmdebug.exe /enableDebug Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe &quot;c:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe&quot;</code>。其中 <code>Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe</code> 为 Edge 进程所在的文件夹，根据系统版本不同而改变。</p>
+<p>Edge 中调用 <code>DuplicateHandle</code> 的操作在函数 ConnectRpcServer 中实现，其中 <code>hTargetProcessHandle</code> 从参数中得来。查看函数的交叉引用发现上层函数为 <code>ScriptEngine::SetJITConnectionInfo</code> ，这个函数为 ScriptEngine 对象的成员函数。在这个函数上下断点，查看当时函数上下文<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">0:019&gt; r</div><div class="line">rax=00007ff8b16a8780 rbx=000001ea7f311200 rcx=000001f27f52aa80</div><div class="line">rdx=0000000000000b40 rsi=000001ea7f311278 rdi=000001f27f52aab0</div><div class="line">rip=00007ff8b16a8780 rsp=000000d47e0fc358 rbp=000000d47e0fc460</div><div class="line"> r8=000000d47e0fc3d0  r9=000000d47e0fc3b0 r10=00000fff162d50f0</div><div class="line">r11=0001000000000000 r12=000000d47e0fc630 r13=0000000000000000</div><div class="line">r14=0000000000000001 r15=000001ea7f350c00</div><div class="line">iopl=0         nv up ei pl zr na po cy</div><div class="line">cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000247</div><div class="line">chakra!ScriptEngine::SetJITConnectionInfo:</div><div class="line">00007ff8`b16a8780 488b0424        mov     rax,qword ptr [rsp] ss:000000d4`7e0fc358=435bfaa5f87f0000</div></pre></td></tr></table></figure></p>
+<p>函数的第二个参数为 <code>hTargetProcessHandle</code> ，查看调用栈可以看出，函数调用发生在 js 引擎初始化阶段，由 <code>CScriptCollection::GetHolderForLanguage</code> 创建完 CActiveScript  之后的初始化函数调用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">0:019&gt; k</div><div class="line">Child-SP          RetAddr           Call Site</div><div class="line">000000d4`7e0fc358 00007ff8`a5fa5b43 chakra!ScriptEngine::SetJITConnectionInfo</div><div class="line">000000d4`7e0fc360 00007ff8`a5ed2e95 edgehtml!CActiveScriptHolder::Init+0x203</div><div class="line">000000d4`7e0fc4c0 00007ff8`a5fe4f9e edgehtml!CScriptCollection::GetHolderForLanguageHelper+0x281</div><div class="line">000000d4`7e0fc590 00007ff8`a5fe4ef1 edgehtml!CScriptCollection::GetHolderForLanguage+0x76</div><div class="line">000000d4`7e0fc5e0 00007ff8`a5fe4e49 edgehtml!CScriptCollection::GetJScript9Holder+0x81</div><div class="line">000000d4`7e0fc630 00007ff8`a60085ea edgehtml!CMarkup::GetJScript9Holder+0x89</div><div class="line">000000d4`7e0fc660 00007ff8`a6016ac3 edgehtml!COmWindowProxy::SwitchMarkup+0x70a</div><div class="line">000000d4`7e0fc770 00007ff8`a60299ef edgehtml!CMarkup::SetInteractiveInternal+0x333</div><div class="line">000000d4`7e0fca70 00007ff8`a60a559d edgehtml!CMarkup::RequestReadystateInteractive+0xd3</div><div class="line">000000d4`7e0fcae0 00007ff8`a5ee23c2 edgehtml!CMarkup::BlockScriptExecutionHelper+0x141</div><div class="line">000000d4`7e0fcb20 00007ff8`a608b507 edgehtml!CHtmPost::Exec+0x522</div><div class="line">000000d4`7e0fcd00 00007ff8`a608b3d4 edgehtml!CHtmPost::Run+0x3b</div></pre></td></tr></table></figure></p>
+<p>查看函数 <code>Edgehtml!CActiveScriptHolder::Init</code> ，可知 <code>hTargetProcessHandle</code> 由函数调用 <code>CDoc::GetChakraJITHostInfo</code> 获得。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">.text:00000000003E5ADC movups  xmm0, xmmword ptr cs:GUID_NULL.Data1</div><div class="line">.text:00000000003E5AE3 mov     rax, [rbx+70h]</div><div class="line">.text:00000000003E5AE7 lea     rcx, [rsp+150h+var_F0]</div><div class="line">.text:00000000003E5AEC or      [rsp+150h+var_120], 0FFFFFFFFFFFFFFFFh</div><div class="line">.text:00000000003E5AF2 lea     r9, [rsp+150h+var_120] ; void **   //  hTargetProcessHandle</div><div class="line">.text:00000000003E5AF7 movdqu  xmmword ptr [rsp+150h+var_F0.Data1], xmm0</div><div class="line">.text:00000000003E5AFD mov     [rsp+150h+var_130], rcx ; struct _GUID *</div><div class="line">.text:00000000003E5B02 lea     r8, [rsp+150h+var_E0] ; unsigned __int8 *</div><div class="line">.text:00000000003E5B07 mov     rcx, [rax+10h]  ; this</div><div class="line">.text:00000000003E5B0B call    ?GetChakraJITHostInfo@CDoc@@QEAA_NKPEAEPEAPEAXPEAU_GUID@@@Z ; CDoc::GetChakraJITHostInfo(ulong,uchar *,void * *,_GUID *)</div><div class="line">.text:00000000003E5B10 test    al, al</div><div class="line">.text:00000000003E5B12 jz      short loc_3E</div><div class="line">.text:00000000003E5B14 mov     rcx, [rsp+150h+var_110]</div><div class="line">.text:00000000003E5B19 lea     r9, [rsp+150h+var_100]</div><div class="line">.text:00000000003E5B1E movaps  xmm0, xmmword ptr [rsp+150h+var_F0.Data1]</div><div class="line">.text:00000000003E5B23 lea     r8, [rsp+150h+var_E0]</div><div class="line">.text:00000000003E5B28 mov     rdx, [rsp+150h+var_120]    // hTargetProcessHandle</div><div class="line">.text:00000000003E5B2D movdqa  [rsp+150h+var_100], xmm0</div><div class="line">.text:00000000003E5B33 mov     rax, [rcx]</div><div class="line">.text:00000000003E5B36 mov     rax, [rax+308h]</div><div class="line">.text:00000000003E5B3D call    cs:__guard_dispatch_icall</div></pre></td></tr></table></figure>
+<p>依次调用 <code>CWebPlatformTridentHost::GetChakraJITHostInfo</code>、<code>EdgeContent!CBrowserTab::CWPCHost::GetChakraJITHostInfo</code> ，最终的值从 <code>EdgeContent!g_tlsThreadRef+0x18</code> 全局变量中获取。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">00007ff8`9eabe921 488b0578e23700  mov     rax,qword ptr [EdgeContent!g_tlsThreadRef+0x18 (00007ff8`9ee3cba0)]</div><div class="line">00007ff8`9eabe928 488903          mov     qword ptr [rbx],rax</div><div class="line">00007ff8`9eabe92b 8b3d6f203800    mov     edi,dword ptr [EdgeContent!SimpleHttpRequestClient::m_currentCallbacks+0x100 (00007ff8`9ee409a0)]</div><div class="line">00007ff8`9eabe931 8b05791f3800    mov     eax,dword ptr [EdgeContent!SimpleHttpRequestClient::m_currentCallbacks+0x10 (00007ff8`9ee408b0)]</div><div class="line">00007ff8`9eabe937 85c0            test    eax,eax</div></pre></td></tr></table></figure>
+<p>对于已经获取任意地址读写权限的攻击者而言，读取这个位置的值就可以得到 JIT 进程的句柄，再通过上文中描述的方法，调用 DuplicateHandle 函数，就可以获得完全权限的 JIT 进程句柄</p>
+<h2 id="Refenrence"><a href="#Refenrence" class="headerlink" title="Refenrence"></a>Refenrence</h2><ul>
+<li><a href="http://www.cnblogs.com/fangyukuan/archive/2010/08/31/1813949.html" target="_blank" rel="external">http://www.cnblogs.com/fangyukuan/archive/2010/08/31/1813949.html</a></li>
+<li><a href="https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms724251(v=vs.85).aspx" target="_blank" rel="external">https://msdn.microsoft.com/zh-cn/library/windows/desktop/ms724251(v=vs.85).aspx</a></li>
+<li><a href="https://bugs.chromium.org/p/project-zero/issues/detail?id=1299" target="_blank" rel="external">https://bugs.chromium.org/p/project-zero/issues/detail?id=1299</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2017/09/15/Bypass_ACG/" data-id="cj7ztagy90000ig1mfqbgn1tx" class="article-share-link">Partager</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2017/09/13/hello-world/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Ancien</strong>
+      <div class="article-nav-title">Hello World</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Articles récents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2017/09/15/Bypass_ACG/">Bypass ACG</a>
+          </li>
+        
+          <li>
+            <a href="/2017/09/13/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">友情链接</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 mohaplus<br>
+      Propulsé by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
