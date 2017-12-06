@@ -5,22 +5,22 @@
   
   <title>RaspBerry Pi 折腾笔记 | 么哈么哈</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="RaspBerry Pi 折腾笔记开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
+  <meta name="description" content="开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
 <meta property="og:type" content="article">
 <meta property="og:title" content="RaspBerry Pi 折腾笔记">
 <meta property="og:url" content="http://mohamoha.club/2017/12/05/Raspberry_Pi/index.html">
 <meta property="og:site_name" content="么哈么哈">
-<meta property="og:description" content="RaspBerry Pi 折腾笔记开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
+<meta property="og:description" content="开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://mohamoha.club/raspberry/download.png">
 <meta property="og:image" content="http://mohamoha.club/raspberry/Win32DiskImager.PNG">
 <meta property="og:image" content="http://mohamoha.club/raspberry/sdcard.png">
 <meta property="og:image" content="http://mohamoha.club/raspberry/ssh.png">
 <meta property="og:image" content="http://mohamoha.club/raspberry/GPIO.png">
-<meta property="og:updated_time" content="2017-12-05T11:57:58.062Z">
+<meta property="og:updated_time" content="2017-12-06T11:26:37.715Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="RaspBerry Pi 折腾笔记">
-<meta name="twitter:description" content="RaspBerry Pi 折腾笔记开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
+<meta name="twitter:description" content="开箱从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。 首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统  一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装">
 <meta name="twitter:image" content="http://mohamoha.club/raspberry/download.png">
   
   
@@ -94,7 +94,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="RaspBerry-Pi-折腾笔记"><a href="#RaspBerry-Pi-折腾笔记" class="headerlink" title="RaspBerry Pi 折腾笔记"></a>RaspBerry Pi 折腾笔记</h1><h2 id="开箱"><a href="#开箱" class="headerlink" title="开箱"></a>开箱</h2><p>从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。</p>
+        <h2 id="开箱"><a href="#开箱" class="headerlink" title="开箱"></a>开箱</h2><p>从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。</p>
 <p>首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统</p>
 <p><img src="/raspberry/download.png" alt="download"></p>
 <p>一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装<br><a id="more"></a><br><img src="/raspberry/Win32DiskImager.PNG" alt=""></p>
@@ -108,7 +108,8 @@
 <p>打开 <code>/etc/rc.local</code> 文件，在exit 0语句前加入：</p>
 <p><code>/etc/init.d/ssh start</code></p>
 <p>或者通过执行 <code>sudo update-rc.d ssh defaults</code> 命令。</p>
-<h2 id="重启树莓派，可以看到再次开机时-sshd-进程已经默认启动了。那么下次再使用时就可以直接通过-ssh-连接。"><a href="#重启树莓派，可以看到再次开机时-sshd-进程已经默认启动了。那么下次再使用时就可以直接通过-ssh-连接。" class="headerlink" title="重启树莓派，可以看到再次开机时 sshd 进程已经默认启动了。那么下次再使用时就可以直接通过 ssh 连接。"></a>重启树莓派，可以看到再次开机时 sshd 进程已经默认启动了。那么下次再使用时就可以直接通过 ssh 连接。</h2><h2 id="title-RaspBerry-Pi-折腾笔记"><a href="#title-RaspBerry-Pi-折腾笔记" class="headerlink" title="title: RaspBerry Pi 折腾笔记"></a>title: RaspBerry Pi 折腾笔记</h2><p><img src="/raspberry/ssh.png" alt=""></p>
+<p>重启树莓派，可以看到再次开机时 sshd 进程已经默认启动了。那么下次再使用时就可以直接通过 ssh 连接。</p>
+<p><img src="/raspberry/ssh.png" alt=""></p>
 <h2 id="FM-发射器"><a href="#FM-发射器" class="headerlink" title="FM 发射器"></a>FM 发射器</h2><p>关于这个主题，网上已经有很多资料,这里选用下面这个 Github 的内容</p>
 <p><a href="https://github.com/ChristopheJacquet/PiFmRds" target="_blank" rel="external">Github：https://github.com/ChristopheJacquet/PiFmRds</a></p>
 <p>首先安装必要的组件 <a href="http://www.mega-nerd.com/libsndfile" target="_blank" rel="external">libsndfile</a>，这是一个用于解析多种格式音频文件的开源库,这个 FM 发射器就是使用这个库对音频文件进行解析而后转化成 FM 电波信号。</p>
@@ -120,16 +121,16 @@
 <p>为了增强信号可以在 GPIO4 引脚上连接一条杜邦线，树莓派引脚图片如下所示，HDMI 接口向下</p>
 <p><img src="/raspberry/GPIO.png" alt=""></p>
 <p>接上杜邦线之后信号果然增强了很多~</p>
+<p>！！！！但是在任何国家私设电台都是违法的，试验成功后请马上关闭！！！！</p>
 <h3 id="FM-发射器-1"><a href="#FM-发射器-1" class="headerlink" title="FM 发射器"></a>FM 发射器</h3><p>查看 PiFmRds 工程的源码，学习具体是如何实现的。在网上的一些资料中大多是使用 wiringPi 库或者 python 来直接调用实现好的接口控制 GPIO，但是初步浏览源码并没有找到类似的信息。猜测可能直接通过操作驱动来实现的。</p>
 <p>阅读源码，在程序开始的位置发现如下代码</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Use the mailbox interface to the VC to ask for physical memory.</span></div><div class="line">mbox.handle = mbox_open();</div><div class="line"><span class="keyword">if</span> (mbox.handle &lt; <span class="number">0</span>)</div><div class="line">    fatal(<span class="string">"Failed to open mailbox. Check kernel support for vcio / BCM2708 mailbox.\n"</span>)</div></pre></td></tr></table></figure>
 <p>看起来是打开驱动设备的操作，进入函数 <code>mbox_open</code></p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> DEVICE_FILE_NAME <span class="meta-string">"/dev/vcio"</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> LOCAL_DEVICE_FILE_NAME <span class="meta-string">"mbox"</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">mbox_open</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> file_desc;</div><div class="line"></div><div class="line">    <span class="comment">// Open a char device file used for communicating with kernel mbox driver.</span></div><div class="line">    file_desc = open(DEVICE_FILE_NAME, <span class="number">0</span>);</div><div class="line">    <span class="keyword">if</span>(file_desc &gt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Using mbox device "</span> DEVICE_FILE_NAME <span class="string">".\n"</span>);</div><div class="line">        <span class="keyword">return</span> file_desc;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="comment">// Try to create one</span></div><div class="line">    unlink(LOCAL_DEVICE_FILE_NAME);</div><div class="line">    <span class="keyword">if</span>(mknod(LOCAL_DEVICE_FILE_NAME, S_IFCHR|<span class="number">0600</span>, makedev(MAJOR_NUM_A, <span class="number">0</span>)) &gt;= <span class="number">0</span> &amp;&amp;</div><div class="line">        (file_desc = open(LOCAL_DEVICE_FILE_NAME, <span class="number">0</span>)) &gt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Using local mbox device file with major %d.\n"</span>, MAJOR_NUM_A);</div><div class="line">        <span class="keyword">return</span> file_desc;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    unlink(LOCAL_DEVICE_FILE_NAME);</div><div class="line">    <span class="keyword">if</span>(mknod(LOCAL_DEVICE_FILE_NAME, S_IFCHR|<span class="number">0600</span>, makedev(MAJOR_NUM_B, <span class="number">0</span>)) &gt;= <span class="number">0</span> &amp;&amp;</div><div class="line">        (file_desc = open(LOCAL_DEVICE_FILE_NAME, <span class="number">0</span>)) &gt;= <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Using local mbox device file with major %d.\n"</span>, MAJOR_NUM_B);</div><div class="line">        <span class="keyword">return</span> file_desc;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>果然这个函数是在打开设备 <code>/dev/vcio</code>，如果系统中还没有这个设备文件，那么就为这个设备新建之并打开。这里可以看到打开的设备号为 249 或 100(内核版本小于 4.1)。<code>/dev/vcio</code> 是树莓派中用于操作 GPU 的驱动设备，可以通过这个设备访问树莓派的 VideoCore GPU，并且不需要 root 权限。详情可以查看这个<a href="http://maazl.de/project/vcio2/doc/" target="_blank" rel="external">网页</a></p>
+<p>果然这个函数是在打开设备 <code>/dev/vcio</code>，如果系统中还没有这个设备文件，那么就为这个设备新建之并打开。这里可以看到打开的设备号为 249 或 100(内核版本小于 4.1)。<code>/dev/vcio</code> 是树莓派中用于操作 GPU 的驱动设备，可以通过这个设备访问树莓派的  GPU，并且不需要 root 权限。详情可以查看这个<a href="http://maazl.de/project/vcio2/doc/" target="_blank" rel="external">网页</a></p>
 <p>接着向设备 <code>/dev/vcio</code> 发送 IOCTL 设备请求以完成各种功能，这个请求函数被封装在函数 <code>mbox_property</code> 中，并通过 <code>mailbox.c</code> 文件中的一系列接口提供各种功能</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> IOCTL_MBOX_PROPERTY _IOWR(MAJOR_NUM_B, 0, char *)</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">mbox_property</span><span class="params">(<span class="keyword">int</span> file_desc, <span class="keyword">void</span> *buf)</span></span></div><div class="line"><span class="function"></span>&#123;</div><div class="line">    <span class="keyword">int</span> ret_val = ioctl(file_desc, IOCTL_MBOX_PROPERTY, buf);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (ret_val &lt; <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"ioctl_set_msg failed:%d\n"</span>, ret_val);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> ret_val;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<p>发射 FM 信号需要使用 GPIO4 号引脚，因此这里对于 GPIO4 还有专门的处理<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// GPIO4 needs to be ALT FUNC 0 to output the clock</span></div><div class="line">gpio_reg[GPFSEL0] = (gpio_reg[GPFSEL0] &amp; ~(<span class="number">7</span> &lt;&lt; <span class="number">12</span>)) | (<span class="number">4</span> &lt;&lt; <span class="number">12</span>);</div></pre></td></tr></table></figure></p>
-<p>接下来是更多看不懂的操作，大体上意思是解析 wav 文件并且循环周期性的写入设备文件中，从而可以以指定的频率发射电波</p>
+<p>接下来是各种看不懂的操作，大体意思是使用 GPU 去修改 CPU 的时钟频率~这部分内容等详细理解之后再做补充</p>
 <h2 id="私人-Git"><a href="#私人-Git" class="headerlink" title="私人 Git"></a>私人 Git</h2><p>使用树莓派还可以搭建一个私人的 Git 用于文件中转，搭建的过程和在服务器上搭建相同。这里参考自<a href="https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000/00137583770360579bc4b458f044ce7afed3df579123eca000" target="_blank" rel="external">廖雪锋的官方网站</a></p>
 <p>第一步，在树莓派上安装 Git<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install git</div></pre></td></tr></table></figure></p>
 <p>第二步，创建一个名为 git 的用户<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo adduser git</div></pre></td></tr></table></figure></p>
@@ -145,7 +146,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjatkm3mq0000n81m85v01oqr" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjauyye330000fg1mpul9igkz" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
