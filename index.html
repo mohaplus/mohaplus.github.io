@@ -94,9 +94,58 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjauyye4q0001fg1mqt6cg8fw" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjbiwxwk20004u41muwyvjzro" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/13/hello-world/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Bypass_CFG_Through_MRDATA" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/" class="article-date">
+  <time datetime="2017-12-23T05:35:14.979Z" itemprop="datePublished">2017-12-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/23/Bypass_CFG_Through_MRDATA/">Bypass CFG Through MRDATA</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://alex-ionescu.com/publications/euskalhack/euskalhack2017-cfg.pdf" target="_blank" rel="external">http://alex-ionescu.com/publications/euskalhack/euskalhack2017-cfg.pdf</a></p>
+<p>这是 Alex 大神的一篇演讲，介绍了一种新的绕过 CFG 的思路</p>
+<h2 id="MRDATA"><a href="#MRDATA" class="headerlink" title="MRDATA"></a>MRDATA</h2><p>从 Win8.1 开始微软为 CFG 的 bitmap 添加了保护机制，将 bitmap 指针等一系列全局变量放置于文件的 <code>.mrdata</code> 区段，这是一个新的 PE 区段，用于保存那些易变的只读数据。</p>
+<p>这个区段在模块加载时被标记为 PAGE_READONLY ，理论上无法被修改。</p>
+<p>但是某些时候 ntdll 需要去修改 <code>.mrdata</code> 区段中的某些数据。为此Windows 提供了一个新的 API : <code>LdrProtectMrdata( bProtect )</code>函数用于设置 <code>.mrdata</code>区段是否开启保护 ，参数传入 0 表示 unprotect，传入 1 表示 protect。</p>
+<p>很明显在模块加载和卸载时都会调用这个函数来设置一些数据，然而有些函数在运行时也会调用这个 API。</p>
+<p>例如<code>SetProtectedPolicy</code> 和 <code>GetProtectedPolicy</code>就会用到它。这两个函数用于设置和获取进程的保护策略，这些策略保存在通过 <code>LdrMrdataHeap</code> 分配的内存中，即策略处于 <code>.mrdata</code> 区段</p>
+        
+          <p class="article-more-link">
+            <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjbiwxwjw0001u41mxujpn2sr" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -140,7 +189,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjauyye330000fg1mpul9igkz" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjbiwxwjz0002u41m5llxpi9a" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -183,7 +232,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjauyye4y0002fg1mpgck67p6" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjbiwxwk10003u41mrzrc3rk3" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -226,7 +275,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjauyye540003fg1mb10f9x88" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjbiwxwjp0000u41m6cfpzdaj" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -266,6 +315,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/">Bypass CFG Through MRDATA</a>
+          </li>
         
           <li>
             <a href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
