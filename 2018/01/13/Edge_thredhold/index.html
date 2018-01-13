@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>也谈 “Spectre” CPU 漏洞 | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="元旦回来 P0 就放出了 2018 年的第一个大新闻，多款处理器被曝出存在安全漏洞可以泄露某些敏感信息，P0 将其分别命名为 “Spectre” 和 “MeltDown”。其中 “Spectre” 漏洞是由于 CPU 的分支预测进而导致的缓存信息泄露，其效果可以越界读取某些内容。 根据原理上来说 “Spectre” 是可以并且比较容易在浏览器中通过 js 相关技术实现攻击的，在 P0 的论文后也附">
+<meta property="og:type" content="article">
+<meta property="og:title" content="也谈 “Spectre” CPU 漏洞">
+<meta property="og:url" content="http://mohamoha.club/2018/01/13/Edge_thredhold/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="元旦回来 P0 就放出了 2018 年的第一个大新闻，多款处理器被曝出存在安全漏洞可以泄露某些敏感信息，P0 将其分别命名为 “Spectre” 和 “MeltDown”。其中 “Spectre” 漏洞是由于 CPU 的分支预测进而导致的缓存信息泄露，其效果可以越界读取某些内容。 根据原理上来说 “Spectre” 是可以并且比较容易在浏览器中通过 js 相关技术实现攻击的，在 P0 的论文后也附">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://mohamoha.club/Spectre/online.png">
+<meta property="og:updated_time" content="2018-01-13T11:54:20.399Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="也谈 “Spectre” CPU 漏洞">
+<meta name="twitter:description" content="元旦回来 P0 就放出了 2018 年的第一个大新闻，多款处理器被曝出存在安全漏洞可以泄露某些敏感信息，P0 将其分别命名为 “Spectre” 和 “MeltDown”。其中 “Spectre” 漏洞是由于 CPU 的分支预测进而导致的缓存信息泄露，其效果可以越界读取某些内容。 根据原理上来说 “Spectre” 是可以并且比较容易在浏览器中通过 js 相关技术实现攻击的，在 P0 的论文后也附">
+<meta name="twitter:image" content="http://mohamoha.club/Spectre/online.png">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Edge_thredhold" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/13/Edge_thredhold/" class="article-date">
+  <time datetime="2018-01-12T16:00:00.000Z" itemprop="datePublished">2018-01-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      也谈 “Spectre” CPU 漏洞
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>元旦回来 P0 就放出了 2018 年的第一个大新闻，多款处理器被曝出存在安全漏洞可以泄露某些敏感信息，P0 将其分别命名为 “Spectre” 和 “MeltDown”。其中 “Spectre” 漏洞是由于 CPU 的分支预测进而导致的缓存信息泄露，其效果可以越界读取某些内容。</p>
+<p>根据原理上来说 “Spectre” 是可以并且比较容易在浏览器中通过 js 相关技术实现攻击的，在 P0 的论文后也附加了一个 C 语言实现的 demo。出于对这种攻击理论上的认可我们开始尝试通过 js 来实现 “Spectre” 的漏洞利用。经过四天的研究我们终于 “全球首发” “Spectre” 漏洞在线检测工具，虽然依然很不完善但是效果却出乎我们所有人的意料。<a href="https://xlab.tencent.com/special/spectre/spectre_check.html" target="_blank" rel="external">检测工具地址</a></p>
+<p><img src="/Spectre/online.png" alt=""></p>
+<p>实现的代码全是 JS 因此可以直接通过前端获取，经过 Exp-sky 师傅的润色代码也大体上可读（ps：如果知道要放出来的话变量命名写的时候就不会那么随意了~ orz）。这里记录一下代码编写过程中的几个问题，以备以后查询。</p>
+<a id="more"></a>
+<h2 id="手撸-ASM-JS"><a href="#手撸-ASM-JS" class="headerlink" title="手撸 ASM.JS"></a>手撸 ASM.JS</h2><p>在编写 <code>vul_call()</code> 时考虑到要尽可能的与 C 程序相似以减少其他情况的干扰，最先想到的是使用 WebAssembly 来实现这一功能，但是由于这个函数需要访问一些外部的数组 <code>ProbTable</code> 使用 WebAssembly 在调试上可能并不方便，同时考虑到在 Chakra 中 WebAssembly 最终都是调用 ASMJS 的接口来实现的。因此转而直接使用 ASMJS 来编写代码。</p>
+<p>ASMJS 与常规的 js 相比多了很多限制，一旦有违反这个限制的情况出现那么浏览器将会直接把 ASMJS 的代码当作常规 JS 来处理。在编写过程中遇到的坑总结起来有如下：</p>
+<ul>
+<li>ASMJS 中只能使用 TypedArray 与 Math 的相关函数</li>
+<li>ASMJS 中所有的 TypedArray 都必须以 ASMJS 整体所在的 heap 作为 buffer，内存的偏移需要自己处理</li>
+<li>ASMJS 中只支持 uint，double 等基本数据类型，以 <code>a|0</code> 表示 uint，以 <code>+a</code> 表示 double</li>
+<li>ASMJS 函数的参数一定要在函数开头按参数顺序声明其类型</li>
+<li>ASMJS 中所有对于变量的赋值取值操作都需要指定类型</li>
+<li>ASMJS 中使用到的变量需要提前声明</li>
+</ul>
+<p>最保险的办法就是实时在浏览器的控制台中检查编写过程有无发生错误。最终这个函数的编写结果如下：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">vul_call</span>(<span class="params">index, sIndex</span>)</span>&#123;</div><div class="line">    index = index |<span class="number">0</span>;</div><div class="line">    sIndex = sIndex |<span class="number">0</span>;        </div><div class="line">    <span class="keyword">var</span> arr_size = <span class="number">0</span>;</div><div class="line">    <span class="keyword">var</span> j = <span class="number">0</span>;</div><div class="line">    junk = probeTable[<span class="number">0</span>]|<span class="number">0</span>;</div><div class="line">    j = ((((sIndex|<span class="number">0</span>)*<span class="number">8192</span>)|<span class="number">0</span>) +  <span class="number">0x1000000</span>)|<span class="number">0</span>;</div><div class="line">    arr_size = simpleByteArray[(j|<span class="number">0</span>)]|<span class="number">0</span>;</div><div class="line">    <span class="keyword">if</span> ((index|<span class="number">0</span>) &lt; (arr_size|<span class="number">0</span>)) &#123;</div><div class="line">        index = simpleByteArray[index|<span class="number">0</span>]|<span class="number">0</span>;</div><div class="line">        index = ((index * <span class="number">0x1000</span>)|<span class="number">0</span>);   <span class="comment">// shift the index to the high mem</span></div><div class="line">        index = (index &amp; ((<span class="number">0x2000000</span><span class="number">-1</span>)|<span class="number">0</span>))|<span class="number">0</span>;</div><div class="line">        junk = (junk ^ (probeTable[index]|<span class="number">0</span>))|<span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="高精度计时器的实现"><a href="#高精度计时器的实现" class="headerlink" title="高精度计时器的实现"></a>高精度计时器的实现</h2><p>“Spectre” 漏洞利用的一个关键就是通过访问时间的差异确定一个数据是否存在于 Cache 之中，在 <code>performance.now</code> 的精度已经被浏览器降低的情况下，我们可以通过最新的 SharedArrayBuffer 技术来实现一定意义上的计时。各大浏览器厂商对于这个漏洞的修补就是取消了默认对 SharedArrayBuffer 的支持。在这种前提下我们需要找到另外一种可以实现高精度计时的方法。</p>
+<p>在 2017 年马耳他会议上的一篇文章恰好提到了这一点，<a href="https://cmaurice.fr/pdf/fc17_schwarz.pdf" target="_blank" rel="external">Fatastic Time</a>是一篇介绍如何在现代浏览器中实现高精度计时器的。</p>
+<p>文章中一共介绍了十一种方法，9种是借助 js 中的其他功能模块比如 SAB、worker 等来实现，两种是通过数据逻辑方法根据 performance.now 方法的结果进行判断。文章中给的统计数据显示，使用 SAB 和一种数学方法实现的计时器的精确度最高，可以达到纳秒级别。</p>
+<p>这里针对这种数学方法进行研究。这种方法在文章中被称为 <code>Edge-thresholding</code> </p>
+<h3 id="Edge-thresholding"><a href="#Edge-thresholding" class="headerlink" title="Edge thresholding"></a>Edge thresholding</h3><p>翻译过来就是 边缘阈值。这种方法的思想是使用 padding 来使得所要区分的时间整体增大，从而使其正好可以处于 performance.now 的两个不同时钟周期中，从而可以看出区别。</p>
+<p>详细说来，我们假设需要用来区分的两个时间分别为 <code>fast_t</code> 和 <code>slow_t</code> ，而 performance.now 的一个最小时间片为 <code>per_clock</code> 。由于 performance.now 的时间精度很小，因此这个时间片就会相对来说很大以至于比需要检测的时间都大，从而看不出差别，即 <code>fast_t &lt; per_clock &amp;&amp; slow_t &lt; per_clock</code>。如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">---------clock------------</div><div class="line">    _______fast_______    </div><div class="line"> ____slow____</div></pre></td></tr></table></figure>
+<p>那么如果我们可以在 <code>fast_t</code> 和 <code>slow_t</code> 后面分别加上一段等长的时间 padding，使得 <code>fast_t</code> 刚好比 <code>slow_t</code> 多跨越一个时间片的边界，那么就可以通过 performance.now 的结果对二者进行区分。如下所示</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">---------clock------------</div><div class="line">_______fast_______***********</div><div class="line">____slow____***********</div></pre></td></tr></table></figure>
+<p>在同时从一个时间片开始的情况下 <code>fast</code> 刚好比 <code>slow</code> 多跨越一个 <code>per_clock</code> 边界，那么通过 performance.now 返回值的结果就可以区分出 <code>fast</code> 和 <code>slow</code></p>
+<p>我们所做的的工作就是找到这个 padding 值，使得访问不在 cache 中的数据时间刚好大于访问在 cache 中的数据时间。</p>
+<h3 id="测试实现"><a href="#测试实现" class="headerlink" title="测试实现"></a>测试实现</h3><p>测试环境为 win7 chrome v63.0.3239.132</p>
+<p>首先需要将操作开始的时间与时间片的边界相重合，接着需要找到可以在一个时间片内多次执行的操作。这些操作可以通过以下方式实现</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">wait_for_tick</span>(<span class="params"></span>) </span>&#123;</div><div class="line">  <span class="keyword">var</span> junk = <span class="number">0</span>;</div><div class="line">  <span class="keyword">var</span> count = <span class="number">0</span>;</div><div class="line">  <span class="keyword">var</span> then = performance.now();</div><div class="line">  <span class="keyword">var</span> now;</div><div class="line">  <span class="keyword">while</span> ((now = performance.now()) == then)</div><div class="line">            ;</div><div class="line">  <span class="comment">// now is at clock edge</span></div><div class="line">  <span class="keyword">for</span> (;;) &#123;</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">var</span> i =<span class="number">0</span> ;i&lt;<span class="number">0xd18</span>; i++)   <span class="comment">// 0xd18 may be the number of constant padiing per clock_time in chrome</span></div><div class="line">        junk++;</div><div class="line">    <span class="keyword">var</span> after = <span class="built_in">window</span>.performance.now();</div><div class="line">    <span class="keyword">if</span> (after != now)&#123;</div><div class="line">      <span class="keyword">return</span> count;</div><div class="line">    &#125;</div><div class="line">    count++;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>经过测试在 performance.now 的一个时间片内可以循环执行 0xd18 次累加操作。<br>在当前测试环境下，通过 performance.now 检测的有无 cache 的访问时间都是 0</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> then = performance.now();</div><div class="line"><span class="keyword">var</span> now;</div><div class="line"><span class="keyword">while</span> ((now = performance.now()) == then)</div><div class="line">    ;</div><div class="line">junk = ab[i];</div><div class="line">then = <span class="built_in">window</span>.performance.now();</div><div class="line">fast = then - now;</div><div class="line"></div><div class="line"><span class="keyword">var</span> then = performance.now();</div><div class="line"><span class="keyword">var</span> now;</div><div class="line"><span class="keyword">while</span> ((now = performance.now()) == then)</div><div class="line">    ;</div><div class="line">junk = ab[i*<span class="number">0x10000</span>];</div><div class="line">then = <span class="built_in">window</span>.performance.now();</div><div class="line">slow = then - now;</div></pre></td></tr></table></figure>
+<p>于是在操作后面逐渐增加 padding ，直至 slow 大于 fast 为止。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;repeat_time;i++)&#123;</div><div class="line">    <span class="keyword">var</span> then = performance.now();</div><div class="line">    <span class="keyword">var</span> now;</div><div class="line">    <span class="keyword">while</span> ((now = performance.now()) == then)</div><div class="line">        ;</div><div class="line">    junk = ab[i];</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">var</span> l =<span class="number">0</span> ;l&lt;padding_size; l++)</div><div class="line">        junk++;</div><div class="line">    then = <span class="built_in">window</span>.performance.now();</div><div class="line">    arr[i] = then-now<span class="comment">//[t2-t1,t1,t2];</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;repeat_time;i++)&#123;</div><div class="line">    <span class="keyword">var</span> then = performance.now();</div><div class="line">    <span class="keyword">var</span> now;</div><div class="line">    <span class="keyword">while</span> ((now = performance.now()) == then)</div><div class="line">        ;</div><div class="line">    junk = ab[i*<span class="number">0x10000</span>]</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">var</span> l =<span class="number">0</span> ;l&lt;padding_size; l++)</div><div class="line">        junk++;</div><div class="line">    then = <span class="built_in">window</span>.performance.now();</div><div class="line">    arr2[i] = then-now<span class="comment">//[t2-t1,t1,t2];</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">function</span> <span class="title">find_padding</span>(<span class="params"></span>)</span>&#123;</div><div class="line">    </div><div class="line">    <span class="keyword">var</span> max = <span class="number">0.0</span></div><div class="line">    <span class="keyword">var</span> max_padding = <span class="number">0.0</span>;</div><div class="line">    <span class="keyword">for</span> (padding_size = <span class="number">0x600</span>;padding_size&lt;<span class="number">0x900</span>;padding_size+=<span class="number">4</span>)&#123;</div><div class="line">        <span class="keyword">var</span> succ = <span class="number">0.0</span></div><div class="line">        </div><div class="line">           succ += test(<span class="literal">false</span>);</div><div class="line">           <span class="keyword">if</span>(succ&gt;max)&#123;</div><div class="line">                max = succ;</div><div class="line">                max_padding = padding_size;</div><div class="line">           &#125;</div><div class="line"></div><div class="line">        <span class="built_in">console</span>.log(succ + <span class="string">'  '</span> + padding_size)</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">console</span>.log(max + <span class="string">'  '</span> + max_padding)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>但是测试的结果与论文中描述差异很大，并不能找到一个 padding 值使得每次访问操作有大概率可以识别出时间差异。</p>
+<h3 id="逻辑分析"><a href="#逻辑分析" class="headerlink" title="逻辑分析"></a>逻辑分析</h3><p>查看 Chrome 的源代码，其中与高精度计时器相关的代码如下</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">HighResolutionTickClock</span> <span class="title">final</span> :</span> <span class="keyword">public</span> TickClock &#123;</div><div class="line"> <span class="keyword">public</span>:</div><div class="line">  <span class="function"><span class="keyword">explicit</span> <span class="title">HighResolutionTickClock</span><span class="params">(<span class="keyword">int64_t</span> ticks_per_second)</span></span></div><div class="line">      : ticks_per_second_(ticks_per_second) &#123;</div><div class="line">    DCHECK_LT(<span class="number">0</span>, ticks_per_second);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">virtual</span> ~HighResolutionTickClock() &#123;&#125;</div><div class="line"></div><div class="line">  <span class="keyword">int64_t</span> Now() override &#123;</div><div class="line">    <span class="keyword">uint64_t</span> now = QPCNowRaw();</div><div class="line"></div><div class="line">    <span class="comment">// Intentionally calculate microseconds in a round about manner to avoid</span></div><div class="line">    <span class="comment">// overflow and precision issues. Think twice before simplifying!</span></div><div class="line">    <span class="keyword">int64_t</span> whole_seconds = now / ticks_per_second_;</div><div class="line">    <span class="keyword">int64_t</span> leftover_ticks = now % ticks_per_second_;</div><div class="line">    <span class="keyword">int64_t</span> ticks = (whole_seconds * Time::kMicrosecondsPerSecond) +</div><div class="line">        ((leftover_ticks * Time::kMicrosecondsPerSecond) / ticks_per_second_);</div><div class="line"></div><div class="line">    <span class="comment">// Make sure we never return 0 here, so that TimeTicks::HighResolutionNow()</span></div><div class="line">    <span class="comment">// will never return 0.</span></div><div class="line">    <span class="keyword">return</span> ticks + <span class="number">1</span>;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">bool</span> <span class="title">IsHighResolution</span><span class="params">()</span> override </span>&#123; <span class="keyword">return</span> <span class="literal">true</span>; &#125;</div><div class="line"></div><div class="line"> <span class="keyword">private</span>:</div><div class="line">  <span class="keyword">int64_t</span> ticks_per_second_;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">// .....</span></div><div class="line"></div><div class="line"><span class="keyword">double</span> PerformanceBase::now() <span class="keyword">const</span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">double</span> nowSeconds = monotonicallyIncreasingTime() - m_timeOrigin;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">double</span> resolutionSeconds = <span class="number">0.000005</span>;</div><div class="line">    <span class="keyword">return</span> <span class="number">1000.0</span> * <span class="built_in">floor</span>(nowSeconds / resolutionSeconds) * resolutionSeconds;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>函数直接调用 <code>QueryPerformanceCounter</code> 接口返回值，接着使用 floor 函数减小精度,这个精度最小值变为 0.005 秒左右。</p>
+<p>经过测试发现，一次访问操作的时间相当于 0x298 次累加操作操作（这个值与 CPU 相关）,访问有缓存的数据和访问无缓存的数据他们之间的时间差值极小，约等于一次或两次循环累加操作所需的时间。</p>
+<p>显然这个精度无法满足我们对于缓存访问的需求。</p>
+<p>进一步分析。我们直接用 C 程序调用 <code>QueryPerformanceCounter</code> 函数查看 Cache 前后的调用时间差</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">addr = (<span class="keyword">uint64_t</span>*)&amp;time[<span class="number">1</span>];</div><div class="line"></div><div class="line">result = QueryPerformanceCounter(&amp;now);</div><div class="line">junk = *addr;</div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">uint64_t</span> time1 = then.QuadPart - now.QuadPart;</div><div class="line"><span class="built_in">printf</span>(<span class="string">"Start Time : %d, end time : %d \n"</span>, now, then);</div><div class="line"></div><div class="line">result = QueryPerformanceCounter(&amp;now);</div><div class="line">junk = *addr;</div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">uint64_t</span> time2 = then.QuadPart - now.QuadPart;</div><div class="line"><span class="built_in">printf</span>(<span class="string">"Start Time : %d, end time : %d \n"</span>, now, then);</div></pre></td></tr></table></figure>
+<p>测试发现即使是 <code>QueryPerformanceCounter</code> 的结果都无法满足 Cahce 的精度要求，自然通过 floor 减小精度之后的值更加无法满足</p>
+<p>但是出于对 padding 理论上的认可，我们通过 C 程序对 padding 算法进行了验证，发现在 c 程序上这种方式是可行的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">addr = (<span class="keyword">uint64_t</span>*)&amp;time[<span class="number">1</span>];</div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">do</span>&#123;</div><div class="line">    result = QueryPerformanceCounter(&amp;now);</div><div class="line">&#125; <span class="keyword">while</span> (now.QuadPart == then.QuadPart);</div><div class="line">junk = *addr;</div><div class="line"><span class="keyword">for</span> (t = <span class="number">0</span>; t &lt; <span class="number">100</span>; t++)</div><div class="line">    junk++;</div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">uint64_t</span> time1 = then.QuadPart - now.QuadPart;</div><div class="line"><span class="built_in">printf</span>(<span class="string">"Start Time : %d, end time : %d \n"</span>, now, then);</div><div class="line"></div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">do</span> &#123;</div><div class="line">    result = QueryPerformanceCounter(&amp;now);</div><div class="line">&#125; <span class="keyword">while</span> (now.QuadPart == then.QuadPart);</div><div class="line">junk = *addr;</div><div class="line"><span class="keyword">for</span> (t = <span class="number">0</span>; t &lt; <span class="number">100</span>; t++)</div><div class="line">    junk++;</div><div class="line">result = QueryPerformanceCounter(&amp;then);</div><div class="line"><span class="keyword">uint64_t</span> time2 = then.QuadPart - now.QuadPart;</div><div class="line"><span class="built_in">printf</span>(<span class="string">"Start Time : %d, end time : %d \n"</span>, now, then);</div></pre></td></tr></table></figure>
+<p>然而在 js 上调用函数会多出许多奇怪的干扰，我们将 <code>QueryPerformanceCounter</code> 使用函数包裹起来，再次调用，发现这种 padding 算法就不再稳定了，而 <code>performance.now</code> 的调用经调试一共包裹了三层函数，并且有许多浮点数的计算操作，从而将引入更大的误差。而其误差已经大于 Cache 的差值。因此理论上无法通过 <code>performance.now</code> 区分缓存与非缓存的时间。</p>
+<h3 id="逆向分析"><a href="#逆向分析" class="headerlink" title="逆向分析"></a>逆向分析</h3><p>在实际发行版的 Chrome 浏览器中逆向分析 <code>performance.now</code> 的结果如下，大体流程与源代码相符合。<code>performance.now</code> 操作会调用函数 <code>blink::PerformanceBase::now:</code>，这个函数调用 <code>WTF::MonotonicallyIncreasingTime</code> 来实现功能。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div></pre></td><td class="code"><pre><div class="line">chrome_child!blink::PerformanceBase::now:</div><div class="line">00007ffc`a900db18 4053            push    rbx</div><div class="line">00007ffc`a900db1a 4883ec20        sub     rsp,20h</div><div class="line">00007ffc`a900db1e 488bd9          mov     rbx,rcx</div><div class="line">00007ffc`a900db21 e8d6180300      call    chrome_child!WTF::MonotonicallyIncreasingTime (00007ffc`a903f3fc)</div><div class="line">00007ffc`a900db26 0f28c8          movaps  xmm1,xmm0</div><div class="line">00007ffc`a900db29 4533c0          xor     r8d,r8d</div><div class="line">00007ffc`a900db2c f20f108398000000 movsd   xmm0,mmword ptr [rbx+98h]</div><div class="line">00007ffc`a900db34 4883c420        add     rsp,20h</div><div class="line">00007ffc`a900db38 5b              pop     rbx</div><div class="line">00007ffc`a900db39 e962b7ebff      jmp     chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp (00007ffc`a8ec92a0)</div><div class="line"></div><div class="line">00007ffc`a8ec92a0:</div><div class="line">00007ffc`a8ec92a0 4883ec28        sub     rsp,28h</div><div class="line">00007ffc`a8ec92a4 0f28d0          movaps  xmm2,xmm0</div><div class="line">00007ffc`a8ec92a7 0f57c0          xorps   xmm0,xmm0</div><div class="line">00007ffc`a8ec92aa 660f2ec8        ucomisd xmm1,xmm0</div><div class="line">00007ffc`a8ec92ae 7a02            jp      chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp+0x12 (00007ffc`a8ec92b2)</div><div class="line">00007ffc`a8ec92b0 7432            je      chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp+0x44 (00007ffc`a8ec92e4)</div><div class="line">00007ffc`a8ec92b2 660f2ed0        ucomisd xmm2,xmm0</div><div class="line">00007ffc`a8ec92b6 7a02            jp      chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp+0x1a (00007ffc`a8ec92ba)</div><div class="line">00007ffc`a8ec92b8 742a            je      chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp+0x44 (00007ffc`a8ec92e4)</div><div class="line">00007ffc`a8ec92ba f20f5cca        subsd   xmm1,xmm2</div><div class="line">00007ffc`a8ec92be 660f2fc1        comisd  xmm0,xmm1</div><div class="line">00007ffc`a8ec92c2 7725            ja      chrome_child!blink::PerformanceBase::MonotonicTimeToDOMHighResTimeStamp+0x49 (00007ffc`a8ec92e9)</div><div class="line">00007ffc`a8ec92c4 f20f5e0de43df802 divsd   xmm1,mmword ptr [chrome_child!_real (00007ffc`abe4d0b0)]</div><div class="line">00007ffc`a8ec92cc 0f28c1          movaps  xmm0,xmm1</div><div class="line">00007ffc`a8ec92cf e844299400      call    chrome_child!floor (00007ffc`a980bc18)</div><div class="line">00007ffc`a8ec92d4 f20f5905d43df802 mulsd   xmm0,mmword ptr [chrome_child!_real (00007ffc`abe4d0b0)]</div><div class="line">00007ffc`a8ec92dc f20f59053c98f802 mulsd   xmm0,mmword ptr [chrome_child!_real (00007ffc`abe52b20)]</div><div class="line">00007ffc`a8ec92e4 4883c428        add     rsp,28h</div><div class="line">00007ffc`a8ec92e8 c3              ret</div><div class="line"></div><div class="line">------------------------------------------------------------------</div><div class="line"></div><div class="line"></div><div class="line">chrome_child!WTF::MonotonicallyIncreasingTime:</div><div class="line">00007ffc`a903f3fc 4883ec38        sub     rsp,38h</div><div class="line">00007ffc`a903f400 488b05b1ab9303  mov     rax,qword ptr [chrome_child!WTF::g_mock_time_function_for_testing (00007ffc`ac979fb8)]</div><div class="line">00007ffc`a903f407 4885c0          test    rax,rax</div><div class="line">00007ffc`a903f40a 754f            jne     chrome_child!WTF::MonotonicallyIncreasingTime+0x5f (00007ffc`a903f45b)</div><div class="line">00007ffc`a903f40c 488d4c2440      lea     rcx,[rsp+40h]</div><div class="line">00007ffc`a903f411 ff15a1c27303    call    qword ptr [chrome_child!g_now_function (00007ffc`ac77b6b8)]</div><div class="line">00007ffc`a903f417 488d4c2440      lea     rcx,[rsp+40h]</div><div class="line">00007ffc`a903f41c c644242001      mov     byte ptr [rsp+20h],1</div><div class="line">00007ffc`a903f421 488b10          mov     rdx,qword ptr [rax]</div><div class="line">00007ffc`a903f424 4889542440      mov     qword ptr [rsp+40h],rdx</div><div class="line">00007ffc`a903f429 4889542440      mov     qword ptr [rsp+40h],rdx</div><div class="line">00007ffc`a903f42e 668364244000    and     word ptr [rsp+40h],0</div><div class="line">00007ffc`a903f434 e8375de4ff      call    chrome_child!base::internal::RangeCheck::IsValid (00007ffc`a8e85170)</div><div class="line">00007ffc`a903f439 84c0            test    al,al</div><div class="line">00007ffc`a903f43b 7425            je      chrome_child!WTF::MonotonicallyIncreasingTime+0x66 (00007ffc`a903f462)</div><div class="line">00007ffc`a903f43d 0f57c0          xorps   xmm0,xmm0</div><div class="line">00007ffc`a903f440 b840420f00      mov     eax,0F4240h</div><div class="line">00007ffc`a903f445 0f57c9          xorps   xmm1,xmm1</div><div class="line">00007ffc`a903f448 f2480f2ac2      cvtsi2sd xmm0,rdx</div><div class="line">00007ffc`a903f44d f2480f2ac8      cvtsi2sd xmm1,rax</div><div class="line">00007ffc`a903f452 f20f5ec1        divsd   xmm0,xmm1</div><div class="line">00007ffc`a903f456 4883c438        add     rsp,38h</div><div class="line">00007ffc`a903f45a c3              ret</div><div class="line"></div><div class="line">----------------------------------------------------------------------</div><div class="line"></div><div class="line">chrome_child!`anonymous namespace&apos;::QPCNow:</div><div class="line">00007ffc`a8e85804 4053            push    rbx</div><div class="line">00007ffc`a8e85806 4883ec20        sub     rsp,20h</div><div class="line">00007ffc`a8e8580a 488bd9          mov     rbx,rcx</div><div class="line">00007ffc`a8e8580d 33c0            xor     eax,eax</div><div class="line">00007ffc`a8e8580f 488d4c2430      lea     rcx,[rsp+30h]</div><div class="line">00007ffc`a8e85814 4889442430      mov     qword ptr [rsp+30h],rax</div><div class="line">00007ffc`a8e85819 ff15a10fcb02    call    qword ptr [chrome_child!_imp_QueryPerformanceCounter (00007ffc`abb367c0)] ds:00007ffc`abb367c0=&#123;KERNEL32!QueryPerformanceCounterStub (00007ffc`fd516180)&#125;</div><div class="line">00007ffc`a8e8581f 4c8b542430      mov     r10,qword ptr [rsp+30h]    // LARGE_INYGER.qword</div><div class="line">00007ffc`a8e85824 48b8f75ad07b63080000 mov rax,8637BD05AF7h</div><div class="line">00007ffc`a8e8582e 4c3bd0          cmp     r10,rax</div><div class="line">00007ffc`a8e85831 0f8dcd849e00    jge     chrome_child!`anonymous namespace&apos;::QPCNow+0x9e8500 (00007ffc`a986dd04)</div><div class="line">00007ffc`a8e85837 4969c240420f00  imul    rax,r10,0F4240h</div><div class="line">00007ffc`a8e8583e 4899            cqo</div><div class="line">00007ffc`a8e85840 48f73db123aa03  idiv    rax,qword ptr [chrome_child!g_qpc_ticks_per_second (00007ffc`ac927bf8)]</div><div class="line">00007ffc`a8e85847 488903          mov     qword ptr [rbx],rax</div><div class="line">00007ffc`a8e8584a 488bc3          mov     rax,rbx</div><div class="line">00007ffc`a8e8584d 4883c420        add     rsp,20h</div><div class="line">00007ffc`a8e85851 5b              pop     rbx</div><div class="line">00007ffc`a8e85852 c3              ret</div><div class="line">00007ffc`a8e85853 cc              int     3</div><div class="line"></div><div class="line">00007ffc`a986dd04:</div><div class="line">00007ffc`a986dd04 4c8b05ed9e0b03  mov     r8,qword ptr [chrome_child!g_qpc_ticks_per_second (00007ffc`ac927bf8)]</div><div class="line">00007ffc`a986dd0b 498bc2          mov     rax,r10</div><div class="line">00007ffc`a986dd0e 4899            cqo</div><div class="line">00007ffc`a986dd10 498bc8          mov     rcx,r8</div><div class="line">00007ffc`a986dd13 49f7f8          idiv    rax,r8</div><div class="line">00007ffc`a986dd16 480fafc8        imul    rcx,rax</div><div class="line">00007ffc`a986dd1a 4c8bc8          mov     r9,rax</div><div class="line">00007ffc`a986dd1d 4c2bd1          sub     r10,rcx</div><div class="line">00007ffc`a986dd20 4969c240420f00  imul    rax,r10,0F4240h</div><div class="line">00007ffc`a986dd27 4969c940420f00  imul    rcx,r9,0F4240h</div><div class="line">00007ffc`a986dd2e 4899            cqo</div><div class="line">00007ffc`a986dd30 49f7f8          idiv    rax,r8</div><div class="line">00007ffc`a986dd33 4803c1          add     rax,rcx</div><div class="line">00007ffc`a986dd36 e90c7b61ff      jmp     chrome_child!`anonymous namespace&apos;::QPCNow+0x43 (00007ffc`a8e85847)</div><div class="line"></div><div class="line">0:000&gt; dq 7ffc`ac927bf8 L1</div><div class="line">00007ffc`ac927bf8  00000000`001ac2e5    // g_qpc_ticks_per_second</div></pre></td></tr></table></figure>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>综上所属，论文给出的数据可能在某种程度上无法复现。</p>
+<h2 id="Refenrence"><a href="#Refenrence" class="headerlink" title="Refenrence"></a>Refenrence</h2><ul>
+<li><a href="https://cmaurice.fr/pdf/fc17_schwarz.pdf" target="_blank" rel="external">https://cmaurice.fr/pdf/fc17_schwarz.pdf</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjcd7h4lj0001lcvq23ixzq3k" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2017/12/27/Decrypt_Pyc/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Decrypt PYC</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
+          </li>
+        
+          <li>
+            <a href="/2017/12/27/Decrypt_Pyc/">Decrypt PYC</a>
+          </li>
+        
+          <li>
+            <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/">Bypass CFG Through MRDATA</a>
+          </li>
+        
+          <li>
+            <a href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
+          </li>
+        
+          <li>
+            <a href="/2017/11/01/Image_Capturer/">Image Capture</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2018/01/13/Edge_thredhold/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
