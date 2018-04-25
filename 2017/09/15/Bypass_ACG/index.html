@@ -13,7 +13,7 @@
 <meta property="og:description" content="P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="http://mohamoha.club/bypassAcg/DuplicateHandle.png">
-<meta property="og:updated_time" content="2018-01-13T10:21:03.315Z">
+<meta property="og:updated_time" content="2018-04-25T09:35:09.853Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Bypass ACG">
 <meta name="twitter:description" content="P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。">
@@ -141,7 +141,7 @@
 <p>如果攻击者可以获取到 JITHandle，并且按照如下形式调用，将 JIT 进程中的 “当前进程句柄”复制到当前进程中。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">DuplicateHandle( JITHandle, GetCurrentProcess(), GetCurrentProcess(), &amp;QWORD, <span class="number">0</span>, <span class="number">0</span>, DUPLICATE_SAME_ACCESS)</div></pre></td></tr></table></figure></p>
 <p>显然 JIT 进程的“当前进程句柄”是拥有完整权限的，而 DUPLICATE_SAME_ACCESS 参数又保证了复制过来的句柄与原句柄拥有相同权限，即也拥有对 JIT 进程的完全权限。</p>
 <h2 id="hTargetProcessHandle"><a href="#hTargetProcessHandle" class="headerlink" title="hTargetProcessHandle"></a>hTargetProcessHandle</h2><p>因此我们目前的工作只要能够找到 JIT 进程在 Render 进程中的 Hnadle 就可以获得对 JIT 进程的实际控制。 </p>
-<p>在  Edge 中实际测试。使用微软提供的工具 PLMDebug.exe（process lifecycle management）可以监控整个进程的生命周期，可以在 Edge 进程启动阶段就使用调试器挂载。使用命令<br><code>plmdebug.exe /enableDebug Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe &quot;c:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe&quot;</code>。其中 <code>Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe</code> 为 Edge 进程所在的文件夹，根据系统版本不同而改变。</p>
+<p>在  Edge 中实际测试。使用微软提供的工具 PLMDebug.exe（process lifecycle management）可以监控整个进程的生命周期，可以在 Edge 进程启动阶段就使用调试器挂载。使用命令<br><code>plmdebug.exe /enableDebug Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe &quot;c:\Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe&quot;</code>。其中 <code>Microsoft.MicrosoftEdge_40.15063.0.0_neutral__8wekyb3d8bbwe</code> 为 Edge 的 PackageID，根据系统版本不同而改变。</p>
 <p>Edge 中调用 <code>DuplicateHandle</code> 的操作在函数 ConnectRpcServer 中实现，其中 <code>hTargetProcessHandle</code> 从参数中得来。查看函数的交叉引用发现上层函数为 <code>ScriptEngine::SetJITConnectionInfo</code> ，这个函数为 ScriptEngine 对象的成员函数。在这个函数上下断点，查看当时函数上下文<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">0:019&gt; r</div><div class="line">rax=00007ff8b16a8780 rbx=000001ea7f311200 rcx=000001f27f52aa80</div><div class="line">rdx=0000000000000b40 rsi=000001ea7f311278 rdi=000001f27f52aab0</div><div class="line">rip=00007ff8b16a8780 rsp=000000d47e0fc358 rbp=000000d47e0fc460</div><div class="line"> r8=000000d47e0fc3d0  r9=000000d47e0fc3b0 r10=00000fff162d50f0</div><div class="line">r11=0001000000000000 r12=000000d47e0fc630 r13=0000000000000000</div><div class="line">r14=0000000000000001 r15=000001ea7f350c00</div><div class="line">iopl=0         nv up ei pl zr na po cy</div><div class="line">cs=0033  ss=002b  ds=002b  es=002b  fs=0053  gs=002b             efl=00000247</div><div class="line">chakra!ScriptEngine::SetJITConnectionInfo:</div><div class="line">00007ff8`b16a8780 488b0424        mov     rax,qword ptr [rsp] ss:000000d4`7e0fc358=435bfaa5f87f0000</div></pre></td></tr></table></figure></p>
 <p>函数的第二个参数为 <code>hTargetProcessHandle</code> ，查看调用栈可以看出，函数调用发生在 js 引擎初始化阶段，由 <code>CScriptCollection::GetHolderForLanguage</code> 创建完 CActiveScript  之后的初始化函数调用。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">0:019&gt; k</div><div class="line">Child-SP          RetAddr           Call Site</div><div class="line">000000d4`7e0fc358 00007ff8`a5fa5b43 chakra!ScriptEngine::SetJITConnectionInfo</div><div class="line">000000d4`7e0fc360 00007ff8`a5ed2e95 edgehtml!CActiveScriptHolder::Init+0x203</div><div class="line">000000d4`7e0fc4c0 00007ff8`a5fe4f9e edgehtml!CScriptCollection::GetHolderForLanguageHelper+0x281</div><div class="line">000000d4`7e0fc590 00007ff8`a5fe4ef1 edgehtml!CScriptCollection::GetHolderForLanguage+0x76</div><div class="line">000000d4`7e0fc5e0 00007ff8`a5fe4e49 edgehtml!CScriptCollection::GetJScript9Holder+0x81</div><div class="line">000000d4`7e0fc630 00007ff8`a60085ea edgehtml!CMarkup::GetJScript9Holder+0x89</div><div class="line">000000d4`7e0fc660 00007ff8`a6016ac3 edgehtml!COmWindowProxy::SwitchMarkup+0x70a</div><div class="line">000000d4`7e0fc770 00007ff8`a60299ef edgehtml!CMarkup::SetInteractiveInternal+0x333</div><div class="line">000000d4`7e0fca70 00007ff8`a60a559d edgehtml!CMarkup::RequestReadystateInteractive+0xd3</div><div class="line">000000d4`7e0fcae0 00007ff8`a5ee23c2 edgehtml!CMarkup::BlockScriptExecutionHelper+0x141</div><div class="line">000000d4`7e0fcb20 00007ff8`a608b507 edgehtml!CHtmPost::Exec+0x522</div><div class="line">000000d4`7e0fcd00 00007ff8`a608b3d4 edgehtml!CHtmPost::Run+0x3b</div></pre></td></tr></table></figure></p>
 <p>查看函数 <code>Edgehtml!CActiveScriptHolder::Init</code> ，可知 <code>hTargetProcessHandle</code> 由函数调用 <code>CDoc::GetChakraJITHostInfo</code> 获得。</p>
@@ -158,7 +158,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjemkbm9i0002ucuuig32u8kz" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjgewc2vg0005g8uusdiu313z" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -211,7 +211,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -222,6 +222,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/">Bypass ACG With UnmapViewOfFile</a>
+          </li>
         
           <li>
             <a href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
@@ -237,10 +241,6 @@
         
           <li>
             <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/">Bypass CFG Through MRDATA</a>
-          </li>
-        
-          <li>
-            <a href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
           </li>
         
       </ul>
