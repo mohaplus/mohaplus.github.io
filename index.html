@@ -94,9 +94,68 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjcdaum8500074wvqmrmqazk0" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjemkbm9x0008ucuuismn7tqe" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/13/hello-world/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-VS_Extension" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/11/VS_Extension/" class="article-date">
+  <time datetime="2018-03-10T16:00:00.000Z" itemprop="datePublished">2018-03-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在阅读大型工程源代码的时候经常需要根据自己的理解为代码添加某些注释，直接在源码文件中的修改有可能会导致工程重新编译，git 更新代码时产生冲突等情况，更有甚者一旦代码通过 git 更新之后，自己添加的注释将不会出现在新代码中；如果将注释写在源码之外的文件中，在以后查阅和对照时又会有其他新的麻烦。基于以上需求，笔者实现了一个 Visual Studio 中的注释插件，可以在源码文件之外独立添加注释，并且在查看源码时会在对应的位置显示注释。</p>
+<p>效果如图所示</p>
+<p><img src="\VsExtension\15.png" alt=""></p>
+<p>在编写过程中参考了<a href="http://michaelscodingspot.com/2017/10/08/visual-studio-2017-extension-development-tutorial-part-1/" target="_blank" rel="external">这篇文章</a> 中插件的实现。感谢这位作者的分享。</p>
+<h2 id="Visual-Studio-Extension"><a href="#Visual-Studio-Extension" class="headerlink" title="Visual Studio Extension"></a>Visual Studio Extension</h2><p>微软为 vs 扩展的开发者提供了一套完整的<a href="https://docs.microsoft.com/zh-cn/visualstudio/extensibility/index" target="_blank" rel="external">开发文档</a>，以便开发者可以根据自己的需求扩展 Visual Studio 的功能。理论上而言可用的扩展点如下</p>
+<ul>
+<li>命令和菜单</li>
+<li>工具窗口</li>
+<li>编辑器窗口</li>
+<li>语言服务</li>
+<li>项目扩展</li>
+<li>用户设置</li>
+<li>属性和属性窗口</li>
+<li>Visual Studio 独立 Shell</li>
+</ul>
+<p>其他更多关于 VS 扩展的内容可以参见上面的开发文档，其中提供了大量的例子可以参考。</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>下面笔者将一步一步记录下整个插件的编写过程，以便之后改进和复现。</p>
+        
+          <p class="article-more-link">
+            <a href="/2018/03/11/VS_Extension/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjemkbm9i0007ucuu95lv34gp" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -140,7 +199,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjcdaum7o00034wvqsmr9y14l" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjemkbm9i0004ucuuf6jawk8r" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -184,7 +243,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjcdaum7r00044wvqcgcvckt3" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjemkbm9i0003ucuu6wptyl3v" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -233,7 +292,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjcdaum7j00024wvqjb96sp0d" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjemkbm9i0001ucuus57pkujs" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -279,7 +338,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjcdaum8300064wvqsscr981t" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjemkbm9i0006ucuupn5zzy81" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -322,7 +381,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjcdaum8000054wvq0ylz7xmo" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjemkbm9i0005ucuujon4vizm" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -365,7 +424,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjcdaum7a00004wvqgd3070a0" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjemkbm9i0002ucuuig32u8kz" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -394,7 +453,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -405,6 +464,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
+          </li>
         
           <li>
             <a href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
@@ -420,10 +483,6 @@
         
           <li>
             <a href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
-          </li>
-        
-          <li>
-            <a href="/2017/11/01/Image_Capturer/">Image Capture</a>
           </li>
         
       </ul>
