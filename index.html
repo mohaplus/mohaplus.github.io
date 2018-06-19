@@ -94,7 +94,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjhrbroce0009f4uu7wueqz3x" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjilrjfvc0005x0uuvucu1x58" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/13/hello-world/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -106,9 +106,55 @@
 
 
   
-    <article id="post-MapViewOfSection__and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Bypass_ACG_with_OpenProcess" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/05/22/MapViewOfSection__and_Shared_Memory/" class="article-date">
+    <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/" class="article-date">
+  <time datetime="2018-06-02T16:00:00.000Z" itemprop="datePublished">2018-06-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/06/03/Bypass_ACG_with_OpenProcess/">Bypass ACG With OpenProcess</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200" target="_blank" rel="external">https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200</a> p0 研究者 ifratric 提出的一种绕过 ACG 保护的方案，即通过修改同一 AppContainer 中的其他 MicrosoftEdgeCp.exe 进程的内存来阻止另一个进程开启 ACG 保护</p>
+<h1 id="ACG-的开启"><a href="#ACG-的开启" class="headerlink" title="ACG 的开启"></a>ACG 的开启</h1><p>进程的 ACG 需要调用函数 <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/hh769088(v=vs.85" target="_blank" rel="external"><code>SetProcessMitigationPolicy</code></a>.aspx) 或者 <a href="http://hex.pp.ua/nt/NtSetInformationProcess.php" target="_blank" rel="external"><code>ZwSetInformationProcess</code></a> 来开启。这里我们主要关注 <code>SetProcessMitigationPolicy</code> ,函数的原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function">BOOL WINAPI <span class="title">SetProcessMitigationPolicy</span><span class="params">(</span></span></div><div class="line"><span class="function"><span class="params">  _In_ PROCESS_MITIGATION_POLICY MitigationPolicy,</span></span></div><div class="line"><span class="function"><span class="params">  _In_ PVOID                     lpBuffer,</span></span></div><div class="line"><span class="function"><span class="params">  _In_ SIZE_T                    dwLength</span></span></div><div class="line"><span class="function"><span class="params">)</span></span>;</div></pre></td></tr></table></figure>
+<p>第一个参数指定要设定的缓解策略类型，第二个参数根据第一个参数指定不同的 Policy 数据，第三个参数指定第二个参数的长度。</p>
+        
+          <p class="article-more-link">
+            <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="cjilrjft00000x0uumpz5oho0" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-MapViewOfSection_and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/" class="article-date">
   <time datetime="2018-05-21T16:00:00.000Z" itemprop="datePublished">2018-05-22</time>
 </a>
     
@@ -120,7 +166,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/22/MapViewOfSection__and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
+      <a class="article-title" href="/2018/05/22/MapViewOfSection_and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
     </h1>
   
 
@@ -138,15 +184,15 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">0:001&gt; dd  1ec`e6240000 </div><div class="line">000001ec`e6240000  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240010  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240020  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240030  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240040  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240050  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240060  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240070  00000000 00000000 00000000 00000000</div></pre></td></tr></table></figure>
         
           <p class="article-more-link">
-            <a href="/2018/05/22/MapViewOfSection__and_Shared_Memory/#more">Read More</a>
+            <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/#more">Read More</a>
           </p>
         
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/" data-id="cjhrbroc90006f4uut8i5r28g" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjilrjfvg0007x0uuz9sawmuz" class="article-share-link">Share</a>
       
-        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
+        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -189,7 +235,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjhrbrobq0000f4uup5b9r1no" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjilrjfug0001x0uuaab77a0f" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -248,7 +294,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjhrbrocc0008f4uuz0tlbyzd" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjilrjfvk0008x0uu68xvdsic" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -294,7 +340,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjhrbroc50004f4uu4z9flvjx" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjilrjfvo000ax0uutrhmxz26" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -338,7 +384,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjhrbroc40003f4uu96xsgw5a" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjilrjfv40004x0uu82ar3lsl" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -387,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjhrbroc20002f4uuitfzfltb" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjilrjfus0002x0uu2y5574ak" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -433,7 +479,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjhrbrocb0007f4uuv9nasfv3" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjilrjfvo0009x0uue0hcjszi" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -476,7 +522,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjhrbroc70005f4uuud32p9vw" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjilrjfvc0006x0uud6zmcn7k" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -488,50 +534,11 @@
 
 
   
-    <article id="post-Bypass_ACG" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/09/15/Bypass_ACG/" class="article-date">
-  <time datetime="2017-09-14T16:00:00.000Z" itemprop="datePublished">2017-09-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/09/15/Bypass_ACG/">Bypass ACG</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。</p>
-        
-          <p class="article-more-link">
-            <a href="/2017/09/15/Bypass_ACG/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjhrbroby0001f4uu32yzd7jk" class="article-share-link">Share</a>
-      
-        <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
 
 
-  
-
+  <nav id="page-nav">
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">__('next') &raquo;</a>
+  </nav>
 </section>
         
           <aside id="sidebar">
@@ -548,7 +555,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -561,7 +568,11 @@
       <ul>
         
           <li>
-            <a href="/2018/05/22/MapViewOfSection__and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
+            <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/">Bypass ACG With OpenProcess</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
           </li>
         
           <li>
@@ -574,10 +585,6 @@
         
           <li>
             <a href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
-          </li>
-        
-          <li>
-            <a href="/2017/12/27/Decrypt_Pyc/">Decrypt PYC</a>
           </li>
         
       </ul>
