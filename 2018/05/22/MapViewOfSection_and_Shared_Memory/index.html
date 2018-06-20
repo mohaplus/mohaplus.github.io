@@ -8,7 +8,7 @@
   <meta name="description" content="之前对于 UnmapViewOfFile 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。 问题描述微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MapViewOfSection and Shared-Memory">
-<meta property="og:url" content="http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/index.html">
+<meta property="og:url" content="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/index.html">
 <meta property="og:site_name" content="么哈么哈">
 <meta property="og:description" content="之前对于 UnmapViewOfFile 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。 问题描述微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的">
 <meta property="og:locale" content="default">
@@ -70,9 +70,9 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-MapViewOfSection__and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main"><article id="post-MapViewOfSection_and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2018/05/22/MapViewOfSection__and_Shared_Memory/" class="article-date">
+    <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/" class="article-date">
   <time datetime="2018-05-21T16:00:00.000Z" itemprop="datePublished">2018-05-22</time>
 </a>
     
@@ -146,9 +146,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/" data-id="cjhrbroc90006f4uut8i5r28g" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjilrjfvg0007x0uuz9sawmuz" class="article-share-link">Share</a>
       
-        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
+        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -156,6 +156,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Bypass ACG With OpenProcess
+        
+      </div>
+    </a>
   
   
     <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" id="article-nav-older" class="article-nav-link-wrap">
@@ -190,7 +199,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -203,7 +212,11 @@
       <ul>
         
           <li>
-            <a href="/2018/05/22/MapViewOfSection__and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
+            <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/">Bypass ACG With OpenProcess</a>
+          </li>
+        
+          <li>
+            <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
           </li>
         
           <li>
@@ -216,10 +229,6 @@
         
           <li>
             <a href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
-          </li>
-        
-          <li>
-            <a href="/2017/12/27/Decrypt_Pyc/">Decrypt PYC</a>
           </li>
         
       </ul>
@@ -260,7 +269,7 @@
 <script>
   var disqus_shortname = 'mohamoha';
   
-  var disqus_url = 'http://mohamoha.club/2018/05/22/MapViewOfSection__and_Shared_Memory/';
+  var disqus_url = 'http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/';
   
   (function(){
     var dsq = document.createElement('script');
