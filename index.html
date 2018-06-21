@@ -106,6 +106,62 @@
 
 
   
+    <article id="post-Ethernaut_zeppelin" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/06/21/Ethernaut_zeppelin/" class="article-date">
+  <time datetime="2018-06-20T16:00:00.000Z" itemprop="datePublished">2018-06-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/06/21/Ethernaut_zeppelin/">Ethernaut Zeppelin 学习</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://ethernaut.zeppelin.solutions/" target="_blank" rel="external">https://ethernaut.zeppelin.solutions/</a> 网站上列出了一系列智能合约在编写过程中可能产生的问题，可以帮助初学者很好的了解智能合约</p>
+<p><a href="https://github.com/OpenZeppelin/ethernaut/blob/master/gamedata/descriptions/pages/help.md" target="_blank" rel="external">https://github.com/OpenZeppelin/ethernaut/blob/master/gamedata/descriptions/pages/help.md</a> 帮助文档</p>
+<p>花了一整天假装自己 AC 了所有的题目，这里把过程中的一点总结和经验记录一下，留以备忘</p>
+<p><img src="/zeppelin/ac.png" alt=""></p>
+<h2 id="Hello"><a href="#Hello" class="headerlink" title="Hello"></a>Hello</h2><p>题目是用来帮助熟悉平台的。这里简单记录一下平台和 Remix 编辑器的基本操作</p>
+<p>平台首先需要安装 MetaMask 插件并登陆账户，如果打开平台时没有登陆账户，那么登陆之后需要刷新页面使账户信息生效。</p>
+<p>Remix 是非常好用的在线编辑平台，其不仅可以编译 solidity 代码生成自己的测试合约，也可以根据地址映射链上已有的合约</p>
+<p><img src="/zeppelin/background.png" alt=""></p>
+<p>在顶部菜单中可以选择合约运行的环境，运行合约的账户。并且可以配置执行合约代码时所带有的 gas 和 value 相当于调用合约时的 <code>.value().gas()</code></p>
+<p><img src="/zeppelin/Environment.png" alt=""></p>
+<p>在执行了合约代码之后可以点击下方的 debug 按钮对合约代码进行调试</p>
+<p><img src="/zeppelin/debug1.png" alt=""></p>
+<p>调试功能十分强大，可以查看运行时的栈，memory，opcode，等几乎所有的 EVM 关键信息</p>
+<p><img src="/zeppelin/debug2.png" alt=""></p>
+        
+          <p class="article-more-link">
+            <a href="/2018/06/21/Ethernaut_zeppelin/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/" data-id="cjiom0dlc00001guurpj02wzn" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-Bypass_ACG_with_OpenProcess" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/" class="article-date">
@@ -491,49 +547,6 @@
 
 
   
-    <article id="post-Image_Capturer" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/11/01/Image_Capturer/" class="article-date">
-  <time datetime="2017-10-31T16:00:00.000Z" itemprop="datePublished">2017-11-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/11/01/Image_Capturer/">Image Capture</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在申请这个博客的时候，定了一个小目标要半个月发一篇文章，结果发现如果不发漏洞分析的话好像很难有其他的文章。在这个月的最后一天终于在 5alt 大佬的帮助和鄙视下完成了一个小爬虫工具。现写一篇文章记录一下这个工具的整个开发过程。</p>
-        
-          <p class="article-more-link">
-            <a href="/2017/11/01/Image_Capturer/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjilrjfvc0006x0uud6zmcn7k" class="article-share-link">Share</a>
-      
-        <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -568,6 +581,10 @@
       <ul>
         
           <li>
+            <a href="/2018/06/21/Ethernaut_zeppelin/">Ethernaut Zeppelin 学习</a>
+          </li>
+        
+          <li>
             <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/">Bypass ACG With OpenProcess</a>
           </li>
         
@@ -581,10 +598,6 @@
         
           <li>
             <a href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
-          </li>
-        
-          <li>
-            <a href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
           </li>
         
       </ul>
