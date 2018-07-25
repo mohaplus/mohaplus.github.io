@@ -106,6 +106,52 @@
 
 
   
+    <article id="post-EOS_build" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/07/23/EOS_build/" class="article-date">
+  <time datetime="2018-07-22T16:00:00.000Z" itemprop="datePublished">2018-07-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/07/23/EOS_build/">EOS 搭建指南</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>EOS 与 ETH 相比，其架构更加复杂，由于其主链刚刚上线不久因此 EOS 中的合约数量也不多，为了学习和理解 EOS 的相关知识，笔者跟随 <a href="">EOS 官网</a> 的教程对 EOS 进行了初步的了解，由于网上目前的资料参差不齐，因此将学习过程中遇到的问题记录在此，以备查阅。</p>
+<h2 id="EOS-源码编译"><a href="#EOS-源码编译" class="headerlink" title="EOS 源码编译"></a>EOS 源码编译</h2><p>编译过程比较繁琐，网上也有很多教程，这里不再赘述，仅记一下笔者搭建过程中遇到的一些坑。由于 EOS 代码版本迭代十分频繁，因此网上许多基于旧版本 EOS 源码的搭建教程并不适用。这里推荐使用其源码中提供的脚本 <code>eosio_build.sh</code> 完成工作。这个脚本会根据编译时的实际环境调用不同系统的专用脚本来完成工作，笔者的环境是 Ubuntu_16 因此最后会调用 <code>/scripts/eosio_build_ubuntu.sh</code> 进行编译。其中比较重要的两个点是首先需要安装最新版本的 boost ，其次是需要安装 OpenSSL，安装完成之后一般来说就可以成功的编译起来了。</p>
+<p>如果编译过程中提示系统硬件配置等信息不符合要求，如内存硬盘等等不够大，可以直接修改脚本中的判断条件。比如默认状态下脚本要求 EOS 编译的内存要有 8G ，但是如果我们在虚拟机中进行编译内存常常不满足要求，此时只需要修改用于进行硬件检测的编译脚本即可，将这个判断条件改小。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">if [ &quot;$&#123;MEM_MEG&#125;&quot; -lt 7000 ]; then</div><div class="line">		printf &quot;\\tYour system must have 7 or more Gigabytes of physical memory installed.\\n&quot;</div><div class="line">		printf &quot;\\tExiting now.\\n&quot;</div><div class="line">		exit 1</div><div class="line">fi</div></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2018/07/23/EOS_build/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/07/23/EOS_build/" data-id="cjk0yz76l0000i4uuw788fjyn" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/07/23/EOS_build/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-Ethernaut_zeppelin" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/06/21/Ethernaut_zeppelin/" class="article-date">
@@ -501,52 +547,6 @@
 
 
   
-    <article id="post-Raspberry_Pi" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/12/05/Raspberry_Pi/" class="article-date">
-  <time datetime="2017-12-04T16:00:00.000Z" itemprop="datePublished">2017-12-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="开箱"><a href="#开箱" class="headerlink" title="开箱"></a>开箱</h2><p>从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。</p>
-<p>首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统</p>
-<p><img src="/raspberry/download.png" alt="download"></p>
-<p>一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装<br>
-        
-          <p class="article-more-link">
-            <a href="/2017/12/05/Raspberry_Pi/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjilrjfvo0009x0uue0hcjszi" class="article-share-link">Share</a>
-      
-        <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
@@ -568,7 +568,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -579,6 +579,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2018/07/23/EOS_build/">EOS 搭建指南</a>
+          </li>
         
           <li>
             <a href="/2018/06/21/Ethernaut_zeppelin/">Ethernaut Zeppelin 学习</a>
@@ -594,10 +598,6 @@
         
           <li>
             <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/">Bypass ACG With UnmapViewOfFile</a>
-          </li>
-        
-          <li>
-            <a href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
           </li>
         
       </ul>
