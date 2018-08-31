@@ -94,7 +94,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjli1ilvc000800uu5bne5nps" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjli23fue000ef4uuhuy3oylp" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/13/hello-world/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -128,7 +128,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h1 id="ETH-变量覆盖问题研究"><a href="#ETH-变量覆盖问题研究" class="headerlink" title="ETH 变量覆盖问题研究"></a>ETH 变量覆盖问题研究</h1><p>经过对 ETH 以及其运行时环境 EVM 的初步研究，我们在合约层面和虚拟机层面分别发现了一些问题，其中有些问题可能导致非常严重的后果，值得 ETH 智能合约的开发者注意。变量覆盖问题就是其中非常典型的一种，有很多以太坊安全研究人员都已经发现了这个问题，但是分析大都停留在结果层面，没有做进一步的探讨。本文将从变量覆盖这个问题入手结合 EVM 虚拟机和 Solidity 编译器的源码详细分析这个问题的表现，可能产生的影响，以及最终导致这个问题的 solidity 编译器根源所在。</p>
+        <p>经过对 ETH 以及其运行时环境 EVM 的初步研究，我们在合约层面和虚拟机层面分别发现了一些问题，其中有些问题可能导致非常严重的后果，值得 ETH 智能合约的开发者注意。变量覆盖问题就是其中非常典型的一种，有很多以太坊安全研究人员都已经发现了这个问题，但是分析大都停留在结果层面，没有做进一步的探讨。本文将从变量覆盖这个问题入手结合 EVM 虚拟机和 Solidity 编译器的源码详细分析这个问题的表现，可能产生的影响，以及最终导致这个问题的 solidity 编译器根源所在。</p>
 <h2 id="变量覆盖"><a href="#变量覆盖" class="headerlink" title="变量覆盖"></a>变量覆盖</h2><p>在某些合约中，我们发现在函数内部对 struct 类型的临时变量进行修改，会在某些情况下覆盖已有的全局变量。</p>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">pragma solidity ^<span class="number">0.4</span><span class="number">.23</span>; </div><div class="line"><span class="comment">// A Locked Name Registrar</span></div><div class="line">contract Locked &#123;</div><div class="line">    bool public unlocked = <span class="literal">false</span>;  <span class="comment">// registrar locked, no name updates</span></div><div class="line">    </div><div class="line">    struct NameRecord &#123; <span class="comment">// map hashes to addresses</span></div><div class="line">        bytes32 name; <span class="comment">// </span></div><div class="line">        address mappedAddress;</div><div class="line">    &#125;</div><div class="line">    mapping(<span class="function"><span class="params">address</span> =&gt;</span> NameRecord) public registeredNameRecord; <span class="comment">// records who registered names </span></div><div class="line">    mapping(<span class="function"><span class="params">bytes32</span> =&gt;</span> address) public resolve; <span class="comment">// resolves hashes to addresses</span></div><div class="line">    </div><div class="line">    <span class="function"><span class="keyword">function</span> <span class="title">register</span>(<span class="params">bytes32 _name, address _mappedAddress</span>) <span class="title">public</span> </span>&#123;</div><div class="line">        <span class="comment">// set up the new NameRecord</span></div><div class="line">        NameRecord newRecord;</div><div class="line">        newRecord.name = _name;</div><div class="line">        newRecord.mappedAddress = _mappedAddress; </div><div class="line">        resolve[_name] = _mappedAddress;</div><div class="line">        registeredNameRecord[msg.sender] = newRecord; </div><div class="line">        <span class="built_in">require</span>(unlocked); <span class="comment">// only allow registrations if contract is unlocked</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
 <p>合约的源码如上面所示，在正常情况下，由于合约并没有提供修改 unlocked 的接口，因此不太可能达到修改它的目的。但是实际上我们在测试中发现，只要调用合约的 register 方法就可以修改 unlocked。</p>
@@ -141,7 +141,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/08/31/VaribleOverlap/" data-id="cjli1ilvc000b00uublemdy2p" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/08/31/VaribleOverlap/" data-id="cjli23fud000df4uuexcyjrf8" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/08/31/VaribleOverlap/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -187,7 +187,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/07/23/EOS_build/" data-id="cjli1ilvc000700uue8085vnp" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/07/23/EOS_build/" data-id="cjli23fu40006f4uuu6ny5zjg" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/07/23/EOS_build/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -243,7 +243,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/" data-id="cjli1ilvc000900uudfg6ug4e" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/" data-id="cjli23fu70008f4uuwexp8lzd" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -289,7 +289,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="cjli1ilux000300uui6th4n1n" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="cjli23ftz0003f4uuf30zhz0m" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -339,7 +339,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjli1ilvs000c00uumv1ds600" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjli23fua000af4uutfp9y4kg" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +384,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjli1ilux000400uuflk92y7p" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjli23ftw0002f4uueaeo986h" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -443,7 +443,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjli1ilvs000e00uushlyfl6s" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjli23fuc000cf4uuh5759yro" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -489,7 +489,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjli1ilvc000500uuz181cy05" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjli23fu50007f4uug8hzwawn" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -533,7 +533,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjli1ilux000200uuxe5cwehc" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjli23fu30005f4uu89tsaue6" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
       
