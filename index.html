@@ -94,9 +94,56 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjli23fue000ef4uuhuy3oylp" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/13/hello-world/" data-id="cjqkxbl9c000f70uutm0ln9zc" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/13/hello-world/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-AST_Fuzzer" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/01/06/AST_Fuzzer/" class="article-date">
+  <time datetime="2019-01-05T16:00:00.000Z" itemprop="datePublished">2019-01-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— 一种新型的浏览器 Fuzz 方案</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Fuzz 测试作为安全领域内的热点话题经久不衰，这主要归功于它在漏洞挖掘领域的卓越表现，fuzz 测试是目前已知的用于挖掘漏洞的最有效手段之一。在与浏览器相关安全的研究中，fuzz 更是占有举足轻重的地位。</p>
+<p>Fuzz 的本质无非是向某个测试对象发送一系列畸形数据来试图引发程序内部发生的一些错误。一般来说 Fuzz 可以分成两种基本形式：生成式和变异式。<br>变异式 Fuzz 是指针对已知的合法输入进行随机或者基于经验的变异，从而产生不可预知的输入。比较典型的工具有 Peach Fuzzer、ProxyFuzz 等。<br>生成式 Fuzz 是指根据已有的经验，规范一个输入的格式，然后基于这个格式生成一系列的输入。比如 SPIKE、Domato 以及一系列浏览器 DOM fuzz。<br>浏览器安全研究中，在以 DOM 对象作为重点研究目标阶段，Fuzz 技术展现了十分优越的性能，短时间内发现了大量 DOM 对象间深层调用所引发的 UAF 漏洞。这其中固然有浏览器 DOM 设计时的缺陷，但是面对如此众多的对象和如此复杂的调用关系，唯有 Fuzz 才可以高效的对其进行测试。</p>
+<p>同时我们也发现了一个问题，即撞洞率太高，一个问题可能会陆续被多个研究者发现，这说明大家所使用的 fuzz 思路是十分接近的。笔者阅读了一些开源的 DOM Fuzzer 源码，发现这些 Fuzzer 虽然具体的形式不同，但是其思想都是通过构造尽可能复杂的语句和 DOM 间对象关系来使目标产生一些异常。这种思路在对 DOM 的研究上已经取得了很大的成功，但是在近两年针对 js 引擎，尤其是 JIT 引擎上，它的表现却不尽如人意。不仅效果很差，而且 Fuzz 产生的样本质量也都普遍不高，可用性很低。分析原因可以看出，旧有的一些 Fuzz 方法大都使用语料库自由组合的方式构造 JS 语句，因而会产生大量无意义的错误代码。而当引擎执行到这些代码时会抛出 <code>RuntimeError</code> 之类的异常，从而提前终止样本。为了使样本可以继续完整执行，Fuzzer 会加入大量的 <code>TryCatch</code> 语句以屏蔽这些异常。</p>
+<p>研究 DOM 对象时这种方法自然无可厚非，但是在 JS 引擎，尤其是 JIT 引擎中，<code>TryCatch</code> 会极大的影响引擎的表现，从而使得大部分功能永远无法执行到。其次这种从已有的语料库中进行拼凑的方法需要 Fuzzer 本身对语法的全方位覆盖，而那些语料库覆盖不到的地方则永远不会被访问，这就大大减少了 Fuzz 可以检测到的攻击面，降低了测试效果。</p>
+<p>针对目前 JS 引擎 Fuzz 遇到的这种困境，笔者在 18 年 6 月提出了一套全新的 fuzz 方案 ———— AST Fuzz。以 JS 语言解析而成的 AST 树作为媒介进行模糊测试。这种方法不仅可以有效的避免无意义代码的生成，还可以大大提升语法的覆盖率，并且在实际应用过程中还有着意想不到的收获。</p>
+        
+          <p class="article-more-link">
+            <a href="/2019/01/06/AST_Fuzzer/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2019/01/06/AST_Fuzzer/" data-id="cjqkxbl76000170uuj1f1vb9d" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2019/01/06/AST_Fuzzer/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -142,7 +189,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/11/24/Babel_HelloWorld/" data-id="cjovmec8f00002cuug0ogpija" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/11/24/Babel_HelloWorld/" data-id="cjqkxbl8h000370uusjitb65d" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/11/24/Babel_HelloWorld/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -189,7 +236,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/09/07/EVM_Simulator/" data-id="cjovmeca600012cuubifwccwe" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/09/07/EVM_Simulator/" data-id="cjqkxbl8x000670uu4n6w6dfm" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/09/07/EVM_Simulator/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +283,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/08/31/VaribleOverlap/" data-id="cjli23fud000df4uuexcyjrf8" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/08/31/VaribleOverlap/" data-id="cjqkxbl9c000c70uu0ivscmw1" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/08/31/VaribleOverlap/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -282,7 +329,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/07/23/EOS_build/" data-id="cjli23fu40006f4uuu6ny5zjg" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/07/23/EOS_build/" data-id="cjqkxbl8x000570uuaaojcbif" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/07/23/EOS_build/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -338,7 +385,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/" data-id="cjli23fu70008f4uuwexp8lzd" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/" data-id="cjqkxbl9c000b70uuj6jey2c1" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/06/21/Ethernaut_zeppelin/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +431,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="cjli23ftz0003f4uuf30zhz0m" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="cjqkxbl8x000470uuizrollgw" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -434,7 +481,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjli23fua000af4uutfp9y4kg" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="cjqkxbl9c000g70uu9nccjtdw" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -479,68 +526,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjli23ftw0002f4uueaeo986h" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="cjqkxbl9c000870uusi84c7xs" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-VS_Extension" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/03/11/VS_Extension/" class="article-date">
-  <time datetime="2018-03-10T16:00:00.000Z" itemprop="datePublished">2018-03-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>在阅读大型工程源代码的时候经常需要根据自己的理解为代码添加某些注释，直接在源码文件中的修改有可能会导致工程重新编译，git 更新代码时产生冲突等情况，更有甚者一旦代码通过 git 更新之后，自己添加的注释将不会出现在新代码中；如果将注释写在源码之外的文件中，在以后查阅和对照时又会有其他新的麻烦。基于以上需求，笔者实现了一个 Visual Studio 中的注释插件，可以在源码文件之外独立添加注释，并且在查看源码时会在对应的位置显示注释。</p>
-<p>效果如图所示</p>
-<p><img src="\VsExtension\15.png" alt=""></p>
-<p>在编写过程中参考了<a href="http://michaelscodingspot.com/2017/10/08/visual-studio-2017-extension-development-tutorial-part-1/" target="_blank" rel="external">这篇文章</a> 中插件的实现。感谢这位作者的分享。</p>
-<h2 id="Visual-Studio-Extension"><a href="#Visual-Studio-Extension" class="headerlink" title="Visual Studio Extension"></a>Visual Studio Extension</h2><p>微软为 vs 扩展的开发者提供了一套完整的<a href="https://docs.microsoft.com/zh-cn/visualstudio/extensibility/index" target="_blank" rel="external">开发文档</a>，以便开发者可以根据自己的需求扩展 Visual Studio 的功能。理论上而言可用的扩展点如下</p>
-<ul>
-<li>命令和菜单</li>
-<li>工具窗口</li>
-<li>编辑器窗口</li>
-<li>语言服务</li>
-<li>项目扩展</li>
-<li>用户设置</li>
-<li>属性和属性窗口</li>
-<li>Visual Studio 独立 Shell</li>
-</ul>
-<p>其他更多关于 VS 扩展的内容可以参见上面的开发文档，其中提供了大量的例子可以参考。</p>
-<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>下面笔者将一步一步记录下整个插件的编写过程，以便之后改进和复现。</p>
-        
-          <p class="article-more-link">
-            <a href="/2018/03/11/VS_Extension/#more">Read More</a>
-          </p>
-        
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjli23fuc000cf4uuh5759yro" class="article-share-link">Share</a>
-      
-        <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
       
     </footer>
@@ -571,7 +559,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -582,6 +570,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— 一种新型的浏览器 Fuzz 方案</a>
+          </li>
         
           <li>
             <a href="/2018/11/24/Babel_HelloWorld/">Babel HelloWorld</a>
@@ -597,10 +589,6 @@
         
           <li>
             <a href="/2018/07/23/EOS_build/">EOS 搭建指南</a>
-          </li>
-        
-          <li>
-            <a href="/2018/06/21/Ethernaut_zeppelin/">Ethernaut Zeppelin 学习</a>
           </li>
         
       </ul>
@@ -622,7 +610,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2018 mohaplus<br>
+      &copy; 2019 mohaplus<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
