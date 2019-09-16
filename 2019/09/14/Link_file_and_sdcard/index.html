@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Link File and Sdcard in Android | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="由于工作上的变动，以及研究目标的转变，笔者没有完成博客建立之初订的一月一篇博文的目标，今天动笔才发现博客开通已经整整两年。回看这两年来的文章，其中不乏有些凑数的水文，实是没有什么价值。 那么就将这两年之际新作为一个的开始，重新制定一个目标，从头再来。 问题提出sdcard 目录是 Android 系统中存在的默认目录，有时候即使手机中没有插入 sdcard 也会存在一个 sdcard 目录，这个目">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Link File and Sdcard in Android">
+<meta property="og:url" content="http://mohamoha.club/2019/09/14/Link_file_and_sdcard/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="由于工作上的变动，以及研究目标的转变，笔者没有完成博客建立之初订的一月一篇博文的目标，今天动笔才发现博客开通已经整整两年。回看这两年来的文章，其中不乏有些凑数的水文，实是没有什么价值。 那么就将这两年之际新作为一个的开始，重新制定一个目标，从头再来。 问题提出sdcard 目录是 Android 系统中存在的默认目录，有时候即使手机中没有插入 sdcard 也会存在一个 sdcard 目录，这个目">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://mohamoha.club/Linkfile/hardlink.jpg">
+<meta property="og:image" content="http://mohamoha.club/Linkfile/softlink.jpg">
+<meta property="og:image" content="http://mohamoha.club/Linkfile/mount.jpg">
+<meta property="og:image" content="http://mohamoha.club/Linkfile/hard.jpg">
+<meta property="og:image" content="http://mohamoha.club/Linkfile/soft.jpg">
+<meta property="og:updated_time" content="2019-09-16T15:23:51.285Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Link File and Sdcard in Android">
+<meta name="twitter:description" content="由于工作上的变动，以及研究目标的转变，笔者没有完成博客建立之初订的一月一篇博文的目标，今天动笔才发现博客开通已经整整两年。回看这两年来的文章，其中不乏有些凑数的水文，实是没有什么价值。 那么就将这两年之际新作为一个的开始，重新制定一个目标，从头再来。 问题提出sdcard 目录是 Android 系统中存在的默认目录，有时候即使手机中没有插入 sdcard 也会存在一个 sdcard 目录，这个目">
+<meta name="twitter:image" content="http://mohamoha.club/Linkfile/hardlink.jpg">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Link_file_and_sdcard" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/09/14/Link_file_and_sdcard/" class="article-date">
+  <time datetime="2019-09-13T16:00:00.000Z" itemprop="datePublished">2019-09-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Link File and Sdcard in Android
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>由于工作上的变动，以及研究目标的转变，笔者没有完成博客建立之初订的一月一篇博文的目标，今天动笔才发现博客开通已经整整两年。回看这两年来的文章，其中不乏有些凑数的水文，实是没有什么价值。 那么就将这两年之际新作为一个的开始，重新制定一个目标，从头再来。</p>
+<h2 id="问题提出"><a href="#问题提出" class="headerlink" title="问题提出"></a>问题提出</h2><p>sdcard 目录是 Android 系统中存在的默认目录，有时候即使手机中没有插入 sdcard 也会存在一个 sdcard 目录，这个目录可以被所有的已安装应用访问，笔者因此有一个想法，是否可以通过 sdcard 中的链接文件来绕过某些针对文件路径的合法性检测。</p>
+<a id="more"></a>
+<h2 id="Linux中的链接"><a href="#Linux中的链接" class="headerlink" title="Linux中的链接"></a>Linux中的链接</h2><p>软链接、硬链接和符号链接之间的比较是一个经常被提起的话题，网络上的各种帖子文章所说也都不同。其实这个问题需要分系统讨论。</p>
+<p>在 Windows 系统中，软链接、硬链接和符号链接的含义均不相同。软链接和硬链接均由文件系统实现，需要<em>文件系统</em>的支持，而“符号链接”是指“符号链接对象”，由对象管理器实现，与文件系统无关；而在 linux 系统中符号链接就是软链接。这里只对 Linux 系统做详细介绍。</p>
+<p>硬链接的源文件和目标文件共享同一个内核对象 INode，源文件的 dentry 和目标文件的 dentry 指向同一个 inode，Inode 在同一个文件系统中是唯一的，因此硬链接无法跨文件系统创建</p>
+<p><img src="/Linkfile/hardlink.jpg" alt=""></p>
+<p>而软链接则占有一个新的内核对象，其 dentry 指向一个新的 inode，Inode 对象的内容就是源文件的文件名。</p>
+<p><img src="/Linkfile/softlink.jpg" alt=""></p>
+<p>查看源码中硬链接的实现，其主要逻辑可以使用伪代码表述为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="number">1.</span> user_path_parent(newdfd, newname, &amp;nd, &amp;to);   <span class="comment">// 查找父目录</span></div><div class="line"><span class="number">2.</span> <span class="keyword">if</span> (old_path.mnt != nd.path.mnt) <span class="keyword">return</span>     <span class="comment">// 判断是否属于同一个文件系统</span></div><div class="line"><span class="number">3.</span> new_dentry = lookup_create(&amp;nd, <span class="number">0</span>);       <span class="comment">// 为链接文件创建 dentry</span></div><div class="line"><span class="number">4.</span> vfs_link(old_path.dentry, nd.path.dentry-&gt;d_inode, new_dentry);   <span class="comment">// 初始化 dentry</span></div><div class="line">     <span class="number">4.1</span> may_create(dir, new_dentry)             <span class="comment">// 检查是否有权限在父目录下新增  dentry</span></div><div class="line">     <span class="number">4.2</span> error = dir-&gt;i_op-&gt;link(old_dentry, dir, new_dentry);    <span class="comment">// 通过索引节点操作表调用具体文件系统</span></div><div class="line">  <span class="number">4.2</span><span class="number">.1</span>将链接文件的dentry添加到父目录的数据块</div><div class="line">  <span class="number">4.2</span><span class="number">.2</span>将源文件的inode号记录在链接文件dentry中</div></pre></td></tr></table></figure>
+<p>相对应的软链接的实现逻辑为</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="number">1.</span> user_path_parent(newdfd, newname, &amp;nd, &amp;to);   <span class="comment">// 查找父目录</span></div><div class="line"><span class="number">2.</span> new_dentry = lookup_create(&amp;nd, <span class="number">0</span>);       <span class="comment">// 在父目录为链接文件创建 dentry</span></div><div class="line"><span class="number">3.</span> vfs_symlink(nd.path.dentry-&gt;d_inode, dentry, from);   <span class="comment">// 初始化 dentry</span></div><div class="line">     <span class="number">3.1</span> may_create(dir, new_dentry)             <span class="comment">// 检查是否有权限在父目录下新增  dentry</span></div><div class="line">     <span class="number">3.2</span> error = dir-&gt;i_op-&gt;symlink(dir, dentry, oldname);    <span class="comment">// 通过索引节点操作表调用具体文件系统</span></div><div class="line">  <span class="number">3.2</span><span class="number">.1</span> 为软链接创建一个新的 inode 结构</div><div class="line">  <span class="number">3.2</span><span class="number">.2</span> 将源文件名记录在 inode 中</div><div class="line">   <span class="number">3.2</span><span class="number">.3</span> 将链接文件的 inode 和 dentry 关联并加入其父目录数据块中</div></pre></td></tr></table></figure>
+<h2 id="Android-中的链接"><a href="#Android-中的链接" class="headerlink" title="Android 中的链接"></a>Android 中的链接</h2><p>Android 系统脱胎于 Linux，其文件系统也继承了 Linux 的 VFS，可以通过 VFS 机制在多个文件系统间协同工作。通过 <code>df</code> 命令和 <code>mount</code> 命令可以查看挂载的文件系统信息。如图是在 Pixel 上执行的命令，可以看出系统中同时存在多个文件系统 <code>ext4、tmpfs、devpts、proc、sysfs、selinuxfs</code>。 查看最后几条记录，可以看出 sdcard 其实是在 <code>data/media</code> 目录下虚拟出来的一块空间，文件系统为 <code>sdcardfs</code>，这些解释了为什么有些手机没有插入 sdcard 也会有这个目录</p>
+<p><img src="/Linkfile/mount.jpg" alt=""></p>
+<p>Sdcardfs 是专为 sdcard 设计的一套文件系统，其前身是 Fuse  (Filesystem in Userspace)，这里感谢 CSDN 上的研究者对 sdcard 和 fuse 的详细分析，无论是 sdcardfs 还是 Fuse 其本质都可以看作是底层文件系统 Ext4 的代理，对文件的访问操作都需要经过 sdcardfs 来进行中转，sdcaardfs 的速度更快。</p>
+<p>那么回到最初的问题，在 Android 系统中是否可以通过创建 sdcard 中的链接文件来绕过某些路径合法性检测呢，</p>
+<p><img src="/Linkfile/hard.jpg" alt=""></p>
+<p><img src="/Linkfile/soft.jpg" alt=""></p>
+<p>经实验发现，无论是硬链接还是软链接在 sdcard 上创建均会失败。在 sdcard 挂载的根目录位置创建的链接文件在 sdcard 中则无法解析。硬链接的原因比较直接，由于硬链接无法跨文件系统，因此在创建硬链接的第二步时会判断，这里的异常就发生在这里。而软链接的失败是什么原因呢</p>
+<p>查看安卓系统源码 sdcardfs 的实现 <code>https://android.googlesource.com/kernel/msm/+/android-7.0.0_r0.1/fs/sdcardfs/inode.c</code>，发现这里其实实现了 link 和 symlink 方法。但是 VFS 的函数调用是通过 inode_operations 结构体来进行的，查看这个结构</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">const struct inode_operations sdcardfs_dir_iops = &#123;</div><div class="line">  .create  = sdcardfs_create,</div><div class="line">  .lookup  = sdcardfs_lookup,</div><div class="line">  .unlink  = sdcardfs_unlink,</div><div class="line">  .mkdir  = sdcardfs_mkdir,</div><div class="line">  .rmdir  = sdcardfs_rmdir,</div><div class="line">  .rename  = sdcardfs_rename,</div><div class="line">  .setattr                  = sdcardfs_setattr,</div><div class="line">  .getattr                  = sdcardfs_getattr,</div><div class="line">  /* XXX Following operations are implemented,</div><div class="line">   *     but FUSE(sdcard) or FAT does not support them</div><div class="line">   *     These methods are *NOT* perfectly tested.</div><div class="line">  .symlink                  = sdcardfs_symlink,</div><div class="line">  .link  = sdcardfs_link,</div><div class="line">  .mknod  = sdcardfs_mknod,</div><div class="line">   */</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>源码并没有在 operations 中导出 symlink 和 link 方法，因此即使有这两个函数的实现，但是通过 VFS 执行相应命令时还是会失败。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>从上面的分析可以看出，安卓系统的 sdcard 在设计之初就有着针对链接文件的防御，不允许在 sdcard 上创建链接文件。但是我们仍然可以通过在 <code>data/data</code> 目录创建链接文件的方式进行某些攻击。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2019/09/14/Link_file_and_sdcard/" data-id="ck0mjzn4o0003cwuu47y3lh9m" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2019/09/14/Link_file_and_sdcard/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/01/06/AST_Fuzzer/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">AST Fuzz —— a New Kind of Fuzzer</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+          <li>
+            <a href="/2018/11/24/Babel_HelloWorld/">Babel HelloWorld</a>
+          </li>
+        
+          <li>
+            <a href="/2018/09/07/EVM_Simulator/">EVM Simulator</a>
+          </li>
+        
+          <li>
+            <a href="/2018/08/31/VaribleOverlap/">ETH Varible Overlap</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2019/09/14/Link_file_and_sdcard/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

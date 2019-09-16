@@ -67,6 +67,51 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-Bypass_ACG_with_UnmapViewOfFile" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" class="article-date">
+  <time datetime="2018-04-24T16:00:00.000Z" itemprop="datePublished">2018-04-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/">Bypass ACG With UnmapViewOfFile</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200" target="_blank" rel="external">https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200</a> p0 研究者 ifratric 提出的一种绕过 ACG 保护的方案，即通过调用函数 <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa366882.aspx" target="_blank" rel="external"><code>UnmapViewOfFile</code></a> 来预先修改内存块内容，从而在可执行页上加入攻击者自定义代码。</p>
+<h1 id="Remote-JIT"><a href="#Remote-JIT" class="headerlink" title="Remote JIT"></a>Remote JIT</h1><p>开启了 ACG 保护之后进程将不能够申请未签名代码页。但是现代浏览器为了提高响应效率，都提供了 JIT 功能用于把 JS 代码编译成本地代码。该功能的实现依赖于在进程空间中动态的生成未签名的代码页。为了同时支持 ACG 和 JIT，Chakra 将其 JIT 功能移动到一个单独的进程中，该进程在其独立的沙箱中运行。JIT进程负责将 JavaScript 编译为本地代码并将其映射到请求进程。渲染进程本身不允许直接映射或修改其自己的JIT代码页。</p>
+<h2 id="JIT-地址管理"><a href="#JIT-地址管理" class="headerlink" title="JIT 地址管理"></a>JIT 地址管理</h2><p>（由于笔者对于 ACG 的分析基于的 Edge 版本较老因此，可能有些地方不匹配）<br>远程分配的地址空间来源于本进程中的 <code>PreReservedSectionAllocWrapper</code> 对象，该对象在 JIT 进程启动时进行初始化，专门负责管理那些远程保留空间。对象的结构简单表示如下<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">PreReservedSectionAllocWrapper</span></span></div><div class="line"><span class="class">&#123;</span></div><div class="line">    BVStatic&lt;PreReservedAllocationSegmentCount&gt;     freeSegments;                  <span class="comment">//0x00             // 用于索引整块内存空间，检查内存状态</span></div><div class="line">    LPVOID                                          preReservedStartAddress;       <span class="comment">//0x200            // 当前应该分配出去的地址</span></div><div class="line">    CriticalSection                                 cs;                            <span class="comment">//0x208</span></div><div class="line">                        |-  PRTL_CRITICAL_SECTION_DEBUG DebugInfo;                 <span class="comment">//0x208</span></div><div class="line">                        |-  LONG LockCount;                                        <span class="comment">//0x210</span></div><div class="line">                        |-  LONG RecursionCount;                                   <span class="comment">//0x214</span></div><div class="line">                        |-  HANDLE OwningThread;                                   <span class="comment">//0x218   from the thread's ClientId-&gt;UniqueThread</span></div><div class="line">                        |-  HANDLE LockSemaphore;                                  <span class="comment">//0x220</span></div><div class="line">                        |-  ULONG_PTR SpinCount                                    <span class="comment">//0x228                                                                      </span></div><div class="line">    HANDLE process;                                                                <span class="comment">//0x230             // 远程进程句柄</span></div><div class="line">    HANDLE section;                                                                <span class="comment">//0x238             // 远程地址 section 句柄</span></div><div class="line">    EnsurePreReservedRegionInternal();                                             <span class="comment">// 用于检查是否还存在可管理的 RESERVE 属性内存，若不存在，则在分配之</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+        
+          <p class="article-more-link">
+            <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="ck0mjzn68000bcwuujj7oeuxw" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-VS_Extension" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/03/11/VS_Extension/" class="article-date">
@@ -114,7 +159,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="cjsstpk6c000h6guuo5xfavc4" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="ck0mjzn6t000jcwuuxs4g8xyp" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -160,7 +205,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="cjsstpk5u00086guug1iejk9m" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="ck0mjzn6b000dcwuu1mb1vztr" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +249,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="cjsstpk4y00046guuo0esx8wl" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="ck0mjzn6d000ecwuurlmfotsr" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -253,7 +298,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="cjsstpk5s00076guu8gf89cmj" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="ck0mjzn6a000ccwuuxrabq5cl" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -299,7 +344,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="cjsstpk67000e6guusr2be6zm" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="ck0mjzn4q0004cwuus3ys3aq0" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -342,7 +387,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="cjsstpk5y000a6guuxgembesv" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="ck0mjzn4u0006cwuunhnsuetg" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -385,7 +430,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="cjsstpk5r00066guu9yuzc1uz" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="ck0mjzn5n0009cwuu3q6lxwe2" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -418,7 +463,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -429,6 +474,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
         
           <li>
             <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
@@ -444,10 +493,6 @@
         
           <li>
             <a href="/2018/08/31/VaribleOverlap/">ETH Varible Overlap</a>
-          </li>
-        
-          <li>
-            <a href="/2018/07/23/EOS_build/">EOS 搭建指南</a>
           </li>
         
       </ul>
