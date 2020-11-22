@@ -67,6 +67,56 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-MapViewOfSection_and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/" class="article-date">
+  <time datetime="2018-05-21T16:00:00.000Z" itemprop="datePublished">2018-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/22/MapViewOfSection_and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前对于 <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#%E8%A1%A5%E4%B8%81">UnmapViewOfFile</a> 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。</p>
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的路径。于是笔者产生了疑问：在不使用 VirtualAlloc/VirtualProtect 的情况下 Render 中的内存页是如何 commit 的</p>
+<p>在打上补丁之后，内存的分配操作只剩下 AllocLocalView ，查看函数源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">AllocLocalView&#123;</div><div class="line">    <span class="comment">//...</span></div><div class="line">    process = GetCurrentProcess();</div><div class="line">    NtdllLibrary::Instance-&gt;MapViewOfSection(sectionHandle, process, &amp;address, <span class="literal">NULL</span>, viewSize, &amp;mapOffset, &amp;viewSize, NtdllLibrary::ViewUnmap, <span class="literal">NULL</span>, flags);</div><div class="line">    <span class="comment">//...</span></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码中调用 MapViewOfSection 在当前进程中为这个用来共享内存的 Section ,其中 CommitSize 参数为 viewSize。实际调试 Edge， 在这个调用上下断点 JIT 进程断在此处，此时 Render 中的虚拟内存地址已经由之前那次 Map 操作确定了，查看 Render 进程中对应的虚拟地址空间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">0:001&gt; dd  1ec`e6240000 </div><div class="line">000001ec`e6240000  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240010  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240020  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240030  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240040  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240050  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240060  ???????? ???????? ???????? ????????</div><div class="line">000001ec`e6240070  ???????? ???????? ???????? ????????</div></pre></td></tr></table></figure>
+<p>执行这次函数调用，再次查看 Render 进程地址，发现此时对应的虚拟地址已经映射了物理地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">0:001&gt; dd  1ec`e6240000 </div><div class="line">000001ec`e6240000  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240010  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240020  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240030  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240040  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240050  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240060  00000000 00000000 00000000 00000000</div><div class="line">000001ec`e6240070  00000000 00000000 00000000 00000000</div></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="ckhsv3p09000hckuuuzzb1hk2" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-Bypass_ACG_with_UnmapViewOfFile" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" class="article-date">
@@ -100,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="ck0mjzn68000bcwuujj7oeuxw" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="ckhsv3p04000eckuukg3ufmy2" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -159,7 +209,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="ck0mjzn6t000jcwuuxs4g8xyp" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="ckhsv3p15000kckuugvdmgime" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -205,7 +255,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="ck0mjzn6b000dcwuu1mb1vztr" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="ckhsv3p02000dckuu3g5b93zy" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -249,7 +299,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="ck0mjzn6d000ecwuurlmfotsr" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="ckhsv3p00000cckuu2eil6rxn" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -298,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="ck0mjzn6a000ccwuuxrabq5cl" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="ckhsv3p06000fckuuv8tbwrl3" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -344,7 +394,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="ck0mjzn4q0004cwuus3ys3aq0" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="ckhsv3ozk0008ckuuyfj215l8" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -387,7 +437,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="ck0mjzn4u0006cwuunhnsuetg" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="ckhsv3oyj0004ckuuic3cke67" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -430,7 +480,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="ck0mjzn5n0009cwuu3q6lxwe2" class="article-share-link">Share</a>
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="ckhsv3ozd0005ckuux7y5dy17" class="article-share-link">Share</a>
       
         <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -463,7 +513,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
     </div>
   </div>
 
@@ -474,6 +524,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
         
           <li>
             <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
@@ -489,10 +543,6 @@
         
           <li>
             <a href="/2018/09/07/EVM_Simulator/">EVM Simulator</a>
-          </li>
-        
-          <li>
-            <a href="/2018/08/31/VaribleOverlap/">ETH Varible Overlap</a>
           </li>
         
       </ul>
@@ -514,7 +564,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 mohaplus<br>
+      &copy; 2020 mohaplus<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
