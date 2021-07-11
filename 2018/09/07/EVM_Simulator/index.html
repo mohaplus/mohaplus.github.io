@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>EVM Simulator | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="CTF 的时候遇到一个以太坊相关的题目，只有合约的 opcode，最后在纸上用手演算做出来的。当时就感觉如果有一个能直接调试 opcode 的东西就好了。在 Salt 大佬 的建议下，花了一天的时间改了改 octopus，攒了一个简易的调试器。 https://github.com/Hearmen/evm_emulator EVM emulator这个调试器是基于 octopus 开发的。 oc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="EVM Simulator">
+<meta property="og:url" content="http://mohamoha.club/2018/09/07/EVM_Simulator/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="CTF 的时候遇到一个以太坊相关的题目，只有合约的 opcode，最后在纸上用手演算做出来的。当时就感觉如果有一个能直接调试 opcode 的东西就好了。在 Salt 大佬 的建议下，花了一天的时间改了改 octopus，攒了一个简易的调试器。 https://github.com/Hearmen/evm_emulator EVM emulator这个调试器是基于 octopus 开发的。 oc">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-11-24T15:38:37.598Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="EVM Simulator">
+<meta name="twitter:description" content="CTF 的时候遇到一个以太坊相关的题目，只有合约的 opcode，最后在纸上用手演算做出来的。当时就感觉如果有一个能直接调试 opcode 的东西就好了。在 Salt 大佬 的建议下，花了一天的时间改了改 octopus，攒了一个简易的调试器。 https://github.com/Hearmen/evm_emulator EVM emulator这个调试器是基于 octopus 开发的。 oc">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-EVM_Simulator" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/09/07/EVM_Simulator/" class="article-date">
+  <time datetime="2018-09-06T16:00:00.000Z" itemprop="datePublished">2018-09-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      EVM Simulator
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p> CTF 的时候遇到一个以太坊相关的题目，只有合约的 opcode，最后在纸上用手演算做出来的。当时就感觉如果有一个能直接调试 opcode 的东西就好了。在 Salt 大佬 的建议下，花了一天的时间改了改 octopus，攒了一个简易的调试器。</p>
+<p><a href="https://github.com/Hearmen/evm_emulator" target="_blank" rel="noopener">https://github.com/Hearmen/evm_emulator</a></p>
+<h2 id="EVM-emulator"><a href="#EVM-emulator" class="headerlink" title="EVM emulator"></a>EVM emulator</h2><p>这个调试器是基于 <a href="https://github.com/quoscient/octopus" target="_blank" rel="noopener">octopus</a> 开发的。 octopus 是研究者 pventuzelo 开发的一款以太坊逆向工具，使用这个工具可以很方便的将大部分 ETH 上的 opcode 编译成 CFG </p>
+<p>调试器为了方便，直接在 octopus 的源码上进行了修改，以后可能会把这一部分抠出来。</p>
+<p>有了 octopus 的基础，调试器实现起来就非常方便。octopus已经将将 opcode 的执行流程进行了分析，基于这个分析我们只需要实现一个 stack，一个 memory 和一个 storage 即可。</p>
+<a id="more"></a>
+<p>我们主要进行了四项修改</p>
+<ul>
+<li>在 <code>ssa_stack_memory_storage_flow_instruction</code> 函数中添加了对 storage 和 memory 的处理，模拟 instruction 的真实作用</li>
+<li>为 <code>emulate</code> 函数添加参数 callinfo，通过这个参数我们就可以传递 calldata 和 value 信息以及其他 transaction 信息给合约</li>
+<li>修改处理 JUMP 的函数，依据 condition 选择下一条执行的 instruction，而不是遍历所有的路径</li>
+<li>修改 state 的处理部分，不再使用 deepcopy 拷贝一个全新的 state，而是直接在原有的 state 上进行修改，从而可以直接将 instruction 的影响应用到 state 中</li>
+</ul>
+<p>修改之后就可以按照下面的方法应用之，上周做的 CTF 题目可以这样来解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">from octopus.arch.evm.disassembler import EvmDisassembler</span><br><span class="line">from octopus.platforms.ETH.emulator import EthereumSSAEngine</span><br><span class="line">from octopus.platforms.ETH.vmstate import EthereumVMstate</span><br><span class="line">from octopus.core.utils import bytecode_to_bytes</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">file_name = &apos;ctf.bytecode&apos;</span><br><span class="line"></span><br><span class="line"># read file</span><br><span class="line">with open(file_name) as f:</span><br><span class="line">    bytecode_hex = f.read()</span><br><span class="line"></span><br><span class="line"># init code</span><br><span class="line">initdata = &quot;0x608060405234801561001057600080fd5b5060008054600160a060020a0319163317815560036002557feb3effabe9960401da2b4dbf9e92b0b40569c5f005f81491c9d92f574adb5b0b907f7e782580d29c5c8c2fc261c858906ff320bd5d2e005b5669cc140d42f15d9b08905b60108110156100845791811881019160010161006d565b505060015561023e806100986000396000f300&quot;</span><br><span class="line"></span><br><span class="line">callinfo = &#123;&apos;calldata&apos;:null,&apos;callvalue&apos;:0&#125;</span><br><span class="line"></span><br><span class="line">state=EthereumVMstate()</span><br><span class="line"></span><br><span class="line">emul = EthereumSSAEngine(initdata)</span><br><span class="line">emul.emulate(callinfo, state)</span><br><span class="line"></span><br><span class="line">emul = EthereumSSAEngine(bytecode_hex)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line">print(&quot;******************************************************************&quot;)</span><br><span class="line"></span><br><span class="line"># Start Call</span><br><span class="line"></span><br><span class="line"># calldata</span><br><span class="line">calldata = bytecode_to_bytes(&quot;0xc6c58bcd95529edd28cb526ab5071fd2fdebd5fc4e08b2af6876dd33a57764a970157576&quot;)</span><br><span class="line"></span><br><span class="line">callinfo = &#123;&apos;calldata&apos;:calldata,&apos;callvalue&apos;:0&#125;</span><br><span class="line">emul.emulate(callinfo, state)</span><br></pre></td></tr></table></figure>
+<p>目前调试器还没有加入用户交互等功能，在以后需要的时候可能会加入。代码本身由于直接在源代码上进行修改的缘故因此比较杂乱。Salt 大佬实现了一个独立的版本，可以参考使用</p>
+<p> <a href="https://github.com/5alt/ethemu" target="_blank" rel="noopener">https://github.com/5alt/ethemu</a></p>
+<h2 id="python-记录"><a href="#python-记录" class="headerlink" title="python 记录"></a>python 记录</h2><p>python 开发的时候遇到了一些小问题，这里记录一下，以备以后查阅</p>
+<h3 id="print-输出颜色"><a href="#print-输出颜色" class="headerlink" title="print 输出颜色"></a>print 输出颜色</h3><p>首先，<code>print</code> 函数输出的问题，有时候我们想要使输出更容易分辨，这就需要输出带有颜色, python 中可以使用 color 进行处理。而终端也自带了这一功能</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">print(&apos;This is a \033[1;35m test \033[0m!&apos;)</span><br><span class="line">print(&apos;This is a \033[1;32;43m test \033[0m!&apos;)</span><br><span class="line">print(&apos;\033[1;33;44mThis is a test !\033[0m&apos;)</span><br></pre></td></tr></table></figure>
+<p>终端的字符颜色是用转义序列控制的，是文本模式下的系统显示功能，和具体的语言无关。转义序列是以ESC开头,即用\033来完成（ESC的ASCII码用十进制表示是27，用八进制表示就是033）。</p>
+<p>书写格式：</p>
+<pre><code>开头部分：\033[显示方式;前景色;背景色m +
+结尾部分：\033[0m
+
+注意：开头部分的三个参数：显示方式，前景色，背景色是可选参数，可以只写其中的某一个；另外由于表示三个参数不同含义的数值都是唯一的没有重复的，所以三个参数的书写先后顺序没有固定要求，系统都能识别；但是，建议按照默认的格式规范书写。
+
+对于结尾部分，其实也可以省略，但是为了书写规范，建议\033[***开头，\033[0m结尾。
+</code></pre><p>数值表示的参数含义：</p>
+<pre><code>显示方式: 0（默认\）、1（高亮）、22（非粗体）、4（下划线）、24（非下划线）、 5（闪烁）、25（非闪烁）、7（反显）、27（非反显）
+前景色:   30（黑色）、31（红色）、32（绿色）、 33（黄色）、34（蓝色）、35（洋 红）、36（青色）、37（白色）
+背景色:   40（黑色）、41（红色）、42（绿色）、 43（黄色）、44（蓝色）、45（洋 红）、46（青色）、47（白色）
+</code></pre><h3 id="bytearry"><a href="#bytearry" class="headerlink" title="bytearry"></a>bytearry</h3><p>在调试器的设计上我使用了 bytearray 作为 EVM 的 memory。这个类型之前使用不多，但是是一个很有意思的类型。</p>
+<p>bytearray 的使用上集成了 byte 和 list 两个类的功能.</p>
+<p>将 int 转化为 bytearray 可以使用方法 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(val).to_bytes(32, byteorder=&quot;big&quot;)</span><br></pre></td></tr></table></figure>
+<p>将字符串转化为 bytearray 可以使用方法</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bytes.fromhex(&apos;7e782580d29c5c8c2fc261c858906ff320bd5d2e005b5669cc140d42f15d9b08&apos;)</span><br></pre></td></tr></table></figure>
+<p>将 bytearray 转化为 int 可以使用方法 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">int(self[p:p+0x20].hex(),16)</span><br></pre></td></tr></table></figure>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a href="https://www.cnblogs.com/fangbei/p/python-print-color.html" target="_blank" rel="noopener">https://www.cnblogs.com/fangbei/p/python-print-color.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/09/07/EVM_Simulator/" data-id="ckqyxnmc90009hkuqsgxqnkcp" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/09/07/EVM_Simulator/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/11/24/Babel_HelloWorld/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Babel HelloWorld
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/08/31/VaribleOverlap/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">ETH Varible Overlap</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2018/09/07/EVM_Simulator/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

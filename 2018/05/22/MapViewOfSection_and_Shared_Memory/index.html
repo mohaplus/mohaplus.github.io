@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>MapViewOfSection and Shared-Memory | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="之前对于 UnmapViewOfFile 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。 问题描述微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MapViewOfSection and Shared-Memory">
+<meta property="og:url" content="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="之前对于 UnmapViewOfFile 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。 问题描述微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://mohamoha.club/MapViewOfSecction/relationship.png">
+<meta property="og:image" content="http://mohamoha.club/MapViewOfSecction/protoPte.png">
+<meta property="og:image" content="http://mohamoha.club/MapViewOfSecction/remote.png">
+<meta property="og:updated_time" content="2018-05-29T06:00:59.356Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MapViewOfSection and Shared-Memory">
+<meta name="twitter:description" content="之前对于 UnmapViewOfFile 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。 问题描述微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的">
+<meta name="twitter:image" content="http://mohamoha.club/MapViewOfSecction/relationship.png">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-MapViewOfSection_and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/" class="article-date">
+  <time datetime="2018-05-21T16:00:00.000Z" itemprop="datePublished">2018-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      MapViewOfSection and Shared-Memory
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前对于 <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#%E8%A1%A5%E4%B8%81">UnmapViewOfFile</a> 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。</p>
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的路径。于是笔者产生了疑问：在不使用 VirtualAlloc/VirtualProtect 的情况下 Render 中的内存页是如何 commit 的</p>
+<p>在打上补丁之后，内存的分配操作只剩下 AllocLocalView ，查看函数源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AllocLocalView&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    process = GetCurrentProcess();</span><br><span class="line">    NtdllLibrary::Instance-&gt;MapViewOfSection(sectionHandle, process, &amp;address, <span class="literal">NULL</span>, viewSize, &amp;mapOffset, &amp;viewSize, NtdllLibrary::ViewUnmap, <span class="literal">NULL</span>, flags);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中调用 MapViewOfSection 在当前进程中为这个用来共享内存的 Section ,其中 CommitSize 参数为 viewSize。实际调试 Edge， 在这个调用上下断点 JIT 进程断在此处，此时 Render 中的虚拟内存地址已经由之前那次 Map 操作确定了，查看 Render 进程中对应的虚拟地址空间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0:001&gt; dd  1ec`e6240000 </span><br><span class="line">000001ec`e6240000  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240010  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240020  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240030  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240040  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240050  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240060  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240070  ???????? ???????? ???????? ????????</span><br></pre></td></tr></table></figure>
+<p>执行这次函数调用，再次查看 Render 进程地址，发现此时对应的虚拟地址已经映射了物理地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0:001&gt; dd  1ec`e6240000 </span><br><span class="line">000001ec`e6240000  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240010  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240020  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240030  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240040  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240050  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240060  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240070  00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<h2 id="内存区对象"><a href="#内存区对象" class="headerlink" title="内存区对象"></a>内存区对象</h2><p>这个问题需要了解内存区对象 SECTION。SECTION 是在 Windows 平台上两个或多个进程之间共享内存的的一种常用方法，它可以被映射到系统的页面文件或者其他的文件中，它是 Windows 中的一种内核对象，由对象管理器来分配和释放。以下是内存区对象的定义</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SECTION</span> &#123;</span></span><br><span class="line">    MMADDRESS_NODE Address;</span><br><span class="line">    PSEGMENT Segment;</span><br><span class="line">    LARGE_INTEGER SizeOfSection;</span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        ULONG LongFlags;</span><br><span class="line">        MMSECTION_FLAGS Flags;</span><br><span class="line">    &#125; u;</span><br><span class="line">    MM_PROTECTION_MASK InitialPageProtection;</span><br><span class="line">&#125; SECTION, *PSECTION;</span><br></pre></td></tr></table></figure>
+<p>Address 成员是内存区的 VAD 节点，用于把所有特定类型的内存区对象组织成一颗平衡树；Segment 成员指向一个段对象，段对象是内存区对象的主体；SizeOfSection 成员是内存区的大小；Flag 表示内存区的一系列标志；InitialPageProtection 指定了内存区中页面的保护属性。</p>
+<p>内存区的创建是由 MmCreateSection 函数来完成的，用户态调用函数 <code>ZwCreateSection</code>。内存区对象有两种，一种建立在页面文件的基础之上，称为页面文件支撑的内存区，另一种被映射到其他文件中，称为文件支撑的内存区，也称为文件映射对象。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">NTSYSAPI NTSTATUS ZwCreateSection(</span><br><span class="line">  PHANDLE            SectionHandle,</span><br><span class="line">  ACCESS_MASK        DesiredAccess,</span><br><span class="line">  POBJECT_ATTRIBUTES ObjectAttributes,</span><br><span class="line">  PLARGE_INTEGER     MaximumSize,</span><br><span class="line">  ULONG              SectionPageProtection,</span><br><span class="line">  ULONG              AllocationAttributes,</span><br><span class="line">  HANDLE             FileHandle</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">NTKERNELAPI NTSTATUS MmCreateSection (</span><br><span class="line">    __deref_out PVOID *SectionObject,                      // 接受返回值</span><br><span class="line">    __in ACCESS_MASK DesiredAccess,                        // 指定内存的访问方式 READ WRITE EXECUTE，但是在 WRK 的源码中没看到这个参数被使用~</span><br><span class="line">    __in_opt POBJECT_ATTRIBUTES ObjectAttributes,          // 指定这个 SECTION 在对象管理器中的名称、安全描述符等</span><br><span class="line">    __in PLARGE_INTEGER InputMaximumSize,                  // 指定 SECTION 所表示的内存大小</span><br><span class="line">    __in ULONG SectionPageProtection,                      // 指定 SECTION 所表示页面的访问属性</span><br><span class="line">    __in ULONG AllocationAttributes,                       // 指定 SECTION 中内存段的分配方式 SEC_BASED SEC_RESERVE SEC_COMMIT</span><br><span class="line">    __in_opt HANDLE FileHandle,                            </span><br><span class="line">    __in_opt PFILE_OBJECT FileObject</span><br><span class="line">    );</span><br></pre></td></tr></table></figure>
+<p>函数的大体逻辑可以分为两部分，对象的创建 和 对象之间关联的创建。首先根据参数创建 SEGMENT 对象，SEGMENT 对象是真正描述内存区数据的对象。查看 MmCreateSection 这部分的代码可以发现，共有三个函数可以用来创建段对象，分别是 MiCreateImageFileMap、MiCreateDataFileMap、MiCreatePagingFileMap。SEGMENT 对象创建完成之后，调用对象管理器 ObCreateObject 创建一个 SECTION 对象。 最后将这些对象相互关联起来。 这里我们只关注页面文件支撑的内存区，其中的 SEGMENT 调用函数 <code>MiCreatePagingFileMap</code> 创建。</p>
+<p>函数原型如下<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">NTSTATUS</span><br><span class="line">MiCreatePagingFileMap (</span><br><span class="line">    OUT PSEGMENT *Segment,                      <span class="comment">// 返回段对象</span></span><br><span class="line">    IN PUINT64 MaximumSize,                     <span class="comment">// 待创建的段对象大小</span></span><br><span class="line">    IN MM_PROTECTION_MASK ProtectionMask,       <span class="comment">// ZwCreateSection 的 SectionPageProtection 转变而来</span></span><br><span class="line">    IN ULONG AllocationAttributes               <span class="comment">// ZwCreateSection 的 AllocationAttributes</span></span><br><span class="line">    )</span><br></pre></td></tr></table></figure></p>
+<p>SEGMENT 对象本身是在换页内存池中分配的，它包含了段内页面数量以及字节数，用于描述此段内页面映射的原型 PTE 阵列等信息，并且有一个指针指向一个控制区对象 CONTROL_AREA，其数据结构如下所示</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">SEGMENT</span> &#123;</span></span><br><span class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">CONTROL_AREA</span> *<span class="title">ControlArea</span>;</span>    <span class="comment">// 控制区对象</span></span><br><span class="line">    ULONG TotalNumberOfPtes;              <span class="comment">// Pte 数量</span></span><br><span class="line">    ULONG NonExtendedPtes;                </span><br><span class="line">    ULONG Spare0;</span><br><span class="line"></span><br><span class="line">    UINT64 SizeOfSegment;                 <span class="comment">// SEGMENT 大小 = Pte 数量 * PageSize</span></span><br><span class="line">    MMPTE SegmentPteTemplate;</span><br><span class="line"></span><br><span class="line">    SIZE_T NumberOfCommittedPages;</span><br><span class="line">    PMMEXTEND_INFO ExtendInfo;</span><br><span class="line"></span><br><span class="line">    SEGMENT_FLAGS SegmentFlags;</span><br><span class="line">    PVOID BasedAddress;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        SIZE_T ImageCommitment;     <span class="comment">// for image-backed sections only</span></span><br><span class="line">        PEPROCESS CreatingProcess;  <span class="comment">// for pagefile-backed sections only    // 记录创建这个 SEGMENT 的进程</span></span><br><span class="line">    &#125; u1;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        PSECTION_IMAGE_INFORMATION ImageInformation;    <span class="comment">// for images only</span></span><br><span class="line">        PVOID FirstMappedVa;        <span class="comment">// for pagefile-backed sections only</span></span><br><span class="line">    &#125; u2;</span><br><span class="line"></span><br><span class="line">    PMMPTE PrototypePte;                                 <span class="comment">// 指向 ThePtes</span></span><br><span class="line">    MMPTE ThePtes[MM_PROTO_PTE_ALIGNMENT / PAGE_SIZE];   <span class="comment">// 原型 PTE 阵列</span></span><br><span class="line"></span><br><span class="line">&#125; SEGMENT, *PSEGMENT;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">CONTROL_AREA</span> &#123;</span></span><br><span class="line">    PSEGMENT Segment;</span><br><span class="line">    LIST_ENTRY DereferenceList;</span><br><span class="line">    ULONG NumberOfSectionReferences;    <span class="comment">// All section refs &amp; image flushes</span></span><br><span class="line">    ULONG NumberOfPfnReferences;        <span class="comment">// valid + transition prototype PTEs</span></span><br><span class="line">    ULONG NumberOfMappedViews;          <span class="comment">// total # mapped views, including</span></span><br><span class="line">                                        <span class="comment">// system cache &amp; system space views</span></span><br><span class="line">    ULONG NumberOfSystemCacheViews;     <span class="comment">// system cache views only</span></span><br><span class="line">    ULONG NumberOfUserReferences;       <span class="comment">// user section &amp; view references</span></span><br><span class="line">    <span class="keyword">union</span> &#123;</span><br><span class="line">        ULONG LongFlags;</span><br><span class="line">        MMSECTION_FLAGS Flags;</span><br><span class="line">    &#125; u;</span><br><span class="line">    PFILE_OBJECT FilePointer;</span><br><span class="line">    PEVENT_COUNTER WaitingForDeletion;</span><br><span class="line">    USHORT ModifiedWriteCount;</span><br><span class="line">    USHORT FlushInProgressCount;</span><br><span class="line">    ULONG WritableUserReferences;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">if</span> !defined (_WIN64)</span></span><br><span class="line">    ULONG QuadwordPad;</span><br><span class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></span><br><span class="line">&#125; CONTROL_AREA, *PCONTROL_AREA;</span><br></pre></td></tr></table></figure>
+<p>查看 <code>MiCreatePagingFileMap</code> 函数逻辑，函数首先确定原型 PTE 阵列中需要多少个 PTE 表项，即计算这个 SEGMENT 管理几个内存页。如果此时传入的参数 AllocationAttributes 中含有 COMMIT 属性，函数会直接调用 <code>MiChargeCommitment</code> 确认有足够的物理页面文件。如果 AllocationAttributes 同时含有 LARGE_PAGE 属性，则会调用 <code>MiAllocateLargeZeroPages</code> 直接在物理内存中分配大块空内存页。</p>
+<p>接着函数会计算 SEGMENT 对象本身需要的内存大小，包括原型 PTE 阵列所占用的空间，然后调用 <code>ExAllocatePoolWithTag</code> 申请一块换页内存池中的内存。<code>MiCreatePagingFileMap</code> 又申请一个 CONTROL_AREA 对象，包括一个子内存区对象 SUBSECTION，这是在非换页内存中申请的。然后初始化 SEGMENT 和 CONTROL_AREA 中的成员，将 SECTION 和 CONTROL_AREA/SUBSECTION 相互关联起来。最后初始化原型 PTE。 将传入的 ProtectionMask 参数保存在 SEGMENT 的 SegmentPteTemplate-&gt;Protection 中。 如果 AllocationAttributes 含有 COMMIT 属性，将原型 PTEs 的 Protection 属性设置为 ProtectionMask，如果还含有 SEC_LARGE_PAGES属性，函数则直接映射好物理内存。其他情况下，所有的原型 PTE 内容至空。</p>
+<p>SECTION、SEGMENT、CONTROL_AREA 之间的相互关联如图</p>
+<p><img src="/MapViewOfSecction/relationship.png" alt></p>
+<p>仅有 SECTION 对象是无法访问内存的，还需要为内存区对象在应用程序中映射一个视图。使用函数 <code>NtMapViewOfSection</code> 对应于内存管理器函数 <code>MmMapViewOfSection</code>。<code>MmMapViewOfSection</code> 根据 SECTION 所对应的 CONTROL_AREA 中的标志信息 <code>ControlArea-&gt;u.Flags</code> 来确定映射 SECTION 的函数。对于页面支撑的内存区通过函数  <code>MiMapViewOfDataSection</code> 来映射内存区。</p>
+<p>现在我们来看 <code>MiMapViewOfDataSection</code> 函数的逻辑，函数原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">NTSTATUS</span><br><span class="line">MiMapViewOfDataSection (</span><br><span class="line">    IN PCONTROL_AREA ControlArea,</span><br><span class="line">    IN PEPROCESS Process,</span><br><span class="line">    IN PVOID *CapturedBase,</span><br><span class="line">    IN PLARGE_INTEGER SectionOffset,</span><br><span class="line">    IN PSIZE_T CapturedViewSize,</span><br><span class="line">    IN PSECTION Section,</span><br><span class="line">    IN SECTION_INHERIT InheritDisposition,</span><br><span class="line">    IN ULONG ProtectionMask,</span><br><span class="line">    IN SIZE_T CommitSize,</span><br><span class="line">    IN ULONG_PTR ZeroBits,</span><br><span class="line">    IN ULONG AllocationType</span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+<p>函数的主要任务是把 SECTION 中描述的存储资源映射到指定进程的地址空间中。函数首先需要确定 SECTION 在目标进程中的地址范围，调用函数 <code>MiFindEmptyAddressRange/MiFindEmptyAddressRangeDown</code> 在进程的虚拟地址空间中找到一段能包含指定大小的地址范围。接着申请一个 MMVAD 对象，使用刚刚找到的地址初始化 VAD 对象，并将其和 SECTION 以及 CONTROL_AREA 关联起来。然后记录各种系统开销，并且把 VAD 节点插入到目标进程的 VAD 树中。如果参数中 CommitSize 不为 0 ，那么函数还需要保证这部分大小的内存页已经被 commit 了，这里的做法是依次将所有要提交部分 PTE 设置成 <code>Segment-&gt;SegmentPteTemplate</code>。<code>MiMapViewOfDataSection</code> 最后在 PROCESS 中更新虚拟地址的信息，完成整个函数的调用。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Vad-&gt;StartingVpn = MI_VA_TO_VPN (StartingAddress);     </span><br><span class="line">Vad-&gt;EndingVpn = MI_VA_TO_VPN (EndingAddress);</span><br><span class="line">Vad-&gt;FirstPrototypePte = TheFirstPrototypePte;    <span class="comment">// TheFirstPrototypePte = &amp;Subsection-&gt;SubsectionBase[PteOffset];</span></span><br><span class="line">                                                  <span class="comment">// Subsection-&gt;SubsectionBase = &amp;NewSegment-&gt;ThePtes[0];</span></span><br><span class="line">                                                  <span class="comment">// NewSegment-&gt;PrototypePte = PointerPte;</span></span><br><span class="line">Vad-&gt;ControlArea = ControlArea;</span><br><span class="line">Vad-&gt;u.VadFlags.Protection = ProtectionMask;                       <span class="comment">// MiMapViewOfDataSection 参数 </span></span><br><span class="line"></span><br><span class="line"><span class="comment">// ......</span></span><br><span class="line"></span><br><span class="line">PointerPte = Vad-&gt;FirstPrototypePte;</span><br><span class="line">LastPte = PointerPte + BYTES_TO_PAGES(CommitSize);</span><br><span class="line">TempPte = Segment-&gt;SegmentPteTemplate;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (PointerPte &lt; LastPte) &#123;</span><br><span class="line">    <span class="keyword">if</span> (PointerPte-&gt;u.Long == <span class="number">0</span>) &#123;</span><br><span class="line">        MI_WRITE_INVALID_PTE (PointerPte, TempPte);     <span class="comment">// 这里实际修改的就是 SEGMENT 对象中的 PTES</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        QuotaExcess += <span class="number">1</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    PointerPte += <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>结合前面的描述可以看出，在 CreateSection 和 MapView 阶段，<strong>设置 COMMIT 属性只是在对应 SEGMENT 的原型 PTE 中设置好 protection 属性，并没有实际的映射物理内存页</strong>。实际的内存映射工作由缺页异常来处理。</p>
+<h2 id="内存页面交换"><a href="#内存页面交换" class="headerlink" title="内存页面交换"></a>内存页面交换</h2><p>当 x86 处理器在执行一个执行流过程中需要翻译一个虚拟地址引用时，如果该地址的 PTE 中的有效位为 0 ，则处理器会触发一个异常，也称为 Page-Fault。这个异常会交由缺页异常处理程序，分配一个物理页面，并设置好 PTE。这里我们不会过分关注缺页异常处理的所有细节，重点查看其对于 SECTION-&gt;SEGMENT-&gt;PrototypePTE 的处理。</p>
+<p>缺页异常处理函数为 <code>MmAccessFault</code>，其主要工作是进行各种检查，判断缺页地址对应的 PTE 是否有效，是否为空等等。在当前场景下 PTE 中仅有 Protection 属性，即非有效的 PTE 也不是全零的 PTE。此时考虑其为一个原型 PTE。 记录下原型 PTE 的 Protection。经过层层检查之后函数最终会调用 <code>MiDispatchFault</code> 去实际处理缺页异常。函数对于原型 PTE 调用函数 <code>MiResolvePotoPteFault</code> 进行处理。<code>MiResolvePotoPteFault</code> 根据原型 PTE 的状态做相应的处理，它可能已经有效了，也可能是一个“要求零页面”的 PTE 了，或者是一个映射文件 PTE，或者在转移状态，或者在页面文件中。所以它会根据具体情况选择调用 <code>MiResolveDemandZeroFault</code>（向内存要求一个页面）、<code>MiResolveTransitionFault</code>、<code>MiResolvePageFileFault</code>或者 <code>MiResolveMappedFileFault</code>。</p>
+<p>《Windows 内核原理与实现》书上的例子可以很好的说明，原型 PTE 在 SECTION 中的用法。如图所示，两个进程 A 和 B 共享一个 SECTION，它们分别拥有该内存区对象的一个 View。SECTION 中的页面 P1 已经被两个进程都访问过了，因此该页面对应的原型 PTE 是一个有效的 PTE，指向物理内存中的页面；P1 在两个进程中的 PTE 也是有效的，指向物理页面。页面 P2 位于页面文件中，所以它对应的 PTE 是无效的，两个进程中对应于 P2 的 PTE 也因该是无效的，它们指向该页面的原型 PTE。 此时 A 进程访问了 P2，那么内存管理器会为 P2 分配一个物理页面，并且让页面 P2 在进程 A 中的 PTE 指向该物理页面，并且 P2 在 SEGMENT 中的原型 PTE 也指向该物理页面。以后， B 进程要访问页面 P2 时，依然会产生缺页异常，但是中断响应程序会发现这是一个指向原型 PTE 的无效 PTE，它检查原型 PTE，知道页面 P2 已经在物理内存了，于是让 P2 在进程 B 中的 PTE 也指向此物理页面，从而两个进程访问的是同一个物理页面 P2。</p>
+<p><img src="/MapViewOfSecction/protoPte.png" alt></p>
+<h2 id="实际调试"><a href="#实际调试" class="headerlink" title="实际调试"></a>实际调试</h2><p>笔者按照 Edge 中共享内存的方式，编写了一个测试程序进行实际调试。首先调用 <code>ZwCreateSection</code> 创建一个 SEC_RESERVE 状态的 Section，接着使用这个 SECTION 在另一个进程中 Map 一块虚拟地址空间，此时远程进程的虚拟地址空间仍然没有 COMMIT。最后在本地进程中 Map 这个 SECTION，并为其提供 CommitSize 参数，在本地进程中 COMMIT 一块内存。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">   hTarget = GetProcessHandle(<span class="string">"SectionTest2.exe"</span>);</span><br><span class="line"></span><br><span class="line">   NtCreateSection(&amp;hSection, SECTION_MAP_EXECUTE | SECTION_MAP_READ | SECTION_MAP_WRITE | SECTION_QUERY, &amp;objAttrs, &amp;sectionSize, PAGE_EXECUTE_READWRITE, SEC_RESERVE, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">ZwMapViewOfSection(hSection, hTarget, &amp;remoteAddr, <span class="literal">NULL</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, &amp;viewSize, ViewUnmap, <span class="literal">NULL</span>, PAGE_EXECUTE_READWRITE);</span><br><span class="line"></span><br><span class="line">LARGE_INTEGER mapOffset = &#123; <span class="number">0</span> &#125;;</span><br><span class="line">ZwMapViewOfSection(hSection, GetCurrentProcess(), &amp;localAddr, <span class="literal">NULL</span>, <span class="number">0x1000</span>, &amp;mapOffset, &amp;viewSize, ViewUnmap, <span class="literal">NULL</span>, PAGE_EXECUTE_READWRITE);</span><br><span class="line"></span><br><span class="line">   *(PDWORD)localAddr = <span class="number">0xffffff</span>;</span><br></pre></td></tr></table></figure>
+<p>调试环境： Win8 x86。 内核调试，先在 ZwCreateSection 上下断点<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; !process 0 0 SectionViewTest.exe</span><br><span class="line">PROCESS 9a46b040  SessionId: 1  Cid: 0af0    Peb: 7f15d000  ParentCid: 0a44</span><br><span class="line">    DirBase: 3e1d24e0  ObjectTable: a3487b00  HandleCount: &lt;Data Not Accessible&gt;</span><br><span class="line">    Image: SectionViewTest.exe</span><br><span class="line">kd&gt; .process /p /i 9a46b040  </span><br><span class="line">You need to continue execution (press &apos;g&apos; &lt;enter&gt;) for the context</span><br><span class="line">to be switched. When the debugger breaks in again, you will be in</span><br><span class="line">the new process context.</span><br><span class="line">kd&gt; bp /p 9a46b040 nt!MmCreateSection</span><br></pre></td></tr></table></figure></p>
+<p>记录下函数返回的 SECTION 对象<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dt nt!_SECTION_OBJECT a11273c8</span><br><span class="line">   +0x000 StartingVa       : 0x00018981 Void</span><br><span class="line">   +0x004 EndingVa         : 0x00018982 Void</span><br><span class="line">   +0x008 Parent           : (null) </span><br><span class="line">   +0x00c LeftChild        : (null) </span><br><span class="line">   +0x010 RightChild       : 0xffd10b48 Void</span><br><span class="line">   +0x014 Segment          : 0x9f6825f0 _SEGMENT_OBJECT</span><br><span class="line">kd&gt; dt nt!_SEGMENT 0x9f6825f0 </span><br><span class="line">   +0x000 ControlArea      : 0x8fe62bd8 _CONTROL_AREA</span><br><span class="line">   +0x004 TotalNumberOfPtes : 0x10</span><br><span class="line">   +0x008 SegmentFlags     : _SEGMENT_FLAGS</span><br><span class="line">   +0x00c NumberOfCommittedPages : 0</span><br><span class="line">   +0x010 SizeOfSegment    : 0x10000</span><br><span class="line">   +0x018 ExtendInfo       : (null) </span><br><span class="line">   +0x018 BasedAddress     : (null) </span><br><span class="line">   +0x01c SegmentLock      : _EX_PUSH_LOCK</span><br><span class="line">   +0x020 u1               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x024 u2               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x028 PrototypePte     : 0x8a2dd848 _MMPTE</span><br><span class="line">kd&gt; dd 0x8a2dd848 </span><br><span class="line">8a2dd848  00000000 00000000 00000000 00000000</span><br><span class="line">8a2dd858  00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure></p>
+<p>可以看到对象结构与 WRK 中相比有些变化，但是关键部分不影响，这里可以看到，以 SEC_RESERVE 状态创建的 SECTION 其原型 PTE 被初始化为空。</p>
+<p>在 MapView 函数上下断点，执行完函数，返回远程虚拟地址 0xD00000，查看 SECTION 状态以及远程进程中对应的虚拟地址空间，原型 PTE 依然为空</p>
+<p><img src="/MapViewOfSecction/remote.png" alt="remote.png"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dt nt!_SEGMENT 0x9f6825f0 </span><br><span class="line">   +0x000 ControlArea      : 0x8fe62bd8 _CONTROL_AREA</span><br><span class="line">   +0x004 TotalNumberOfPtes : 0x10</span><br><span class="line">   +0x008 SegmentFlags     : _SEGMENT_FLAGS</span><br><span class="line">   +0x00c NumberOfCommittedPages : 0</span><br><span class="line">   +0x010 SizeOfSegment    : 0x10000</span><br><span class="line">   +0x018 ExtendInfo       : (null) </span><br><span class="line">   +0x018 BasedAddress     : (null) </span><br><span class="line">   +0x01c SegmentLock      : _EX_PUSH_LOCK</span><br><span class="line">   +0x020 u1               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x024 u2               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x028 PrototypePte     : 0x8a2dd848 _MMPTE</span><br><span class="line">kd&gt; dd 0x8a2dd848 </span><br><span class="line">8a2dd848  00000000 00000000 00000000 00000000</span><br><span class="line">8a2dd858  00000000 00000000 00000000 00000000</span><br><span class="line"></span><br><span class="line">kd&gt; .process /i /p 8e93fa40  </span><br><span class="line">kd&gt; dd d00000</span><br><span class="line">00d00000  ???????? ???????? ???????? ????????</span><br><span class="line">00d00010  ???????? ???????? ???????? ????????</span><br></pre></td></tr></table></figure></p>
+<p>在本地进程上 MapView，返回本地地址空间 0x90000 ,查看 SECTION 状态以及虚拟地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dt nt!_SECTION_OBJECT a11273c8      </span><br><span class="line">   +0x000 StartingVa       : 0x00018981 Void</span><br><span class="line">   +0x004 EndingVa         : 0x00018982 Void</span><br><span class="line">   +0x008 Parent           : (null) </span><br><span class="line">   +0x00c LeftChild        : (null) </span><br><span class="line">   +0x010 RightChild       : 0xffd10b48 Void</span><br><span class="line">   +0x014 Segment          : 0x9f6825f0 _SEGMENT_OBJECT</span><br><span class="line">kd&gt; dt nt!_SEGMENT 0x9f6825f0 </span><br><span class="line">   +0x000 ControlArea      : 0x8fe62bd8 _CONTROL_AREA</span><br><span class="line">   +0x004 TotalNumberOfPtes : 0x10</span><br><span class="line">   +0x008 SegmentFlags     : _SEGMENT_FLAGS</span><br><span class="line">   +0x00c NumberOfCommittedPages : 1                  ; Changed</span><br><span class="line">   +0x010 SizeOfSegment    : 0x10000</span><br><span class="line">   +0x018 ExtendInfo       : (null) </span><br><span class="line">   +0x018 BasedAddress     : (null) </span><br><span class="line">   +0x01c SegmentLock      : _EX_PUSH_LOCK</span><br><span class="line">   +0x020 u1               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x024 u2               : &lt;unnamed-tag&gt;</span><br><span class="line">   +0x028 PrototypePte     : 0x8a2dd848 _MMPTE</span><br><span class="line">kd&gt; dd 0x8a2dd848 </span><br><span class="line">8a2dd848  000000c0 00000000 00000000 00000000         ; Changed</span><br><span class="line">8a2dd858  00000000 00000000 00000000 00000000</span><br><span class="line"></span><br><span class="line">kd&gt; .process /p /i 8e93fa40</span><br><span class="line">kd&gt; ?? (char *)@$proc-&gt;ImageFileName</span><br><span class="line">char * 0x8e93fbb0</span><br><span class="line"> &quot;SectionTest2.e&quot;</span><br><span class="line">kd&gt; dd d00000</span><br><span class="line">00d00000  ???????? ???????? ???????? ????????</span><br><span class="line">00d00010  ???????? ???????? ???????? ????????</span><br><span class="line"></span><br><span class="line">kd&gt; .process /p /i 9a46b040</span><br><span class="line">kd&gt; ?? (char *)@$proc-&gt;ImageFileName</span><br><span class="line">char * 0x9a46b1b0</span><br><span class="line"> &quot;SectionViewTes&quot;</span><br><span class="line">kd&gt; dd 900000</span><br><span class="line">00900000  ???????? ???????? ???????? ????????</span><br><span class="line">00900010  ???????? ???????? ???????? ????????</span><br></pre></td></tr></table></figure>
+<p>可以看到 MapView 之后，虽然 SECTION 已经产生了相应更改，但是原型 PTE 中只是记录了 Protection 属性，在进程空间中，相应的虚拟地址空间也都没有映射到物理内存。</p>
+<p>在 SectionViewTest 的 <code>MmAccessFault</code> 上下断点，访问 SectionViewTest 地址 0x900000，函数最终调用 <code>MiResolveDemandZeroFault</code> 函数完成任务，函数从物理内存管理器中申请内存页然后修改 PTE，最后调用 <code>MiCompleteProtoPteFault</code> 将原型 PTE 应用到进程的 PTE 中。查看 SECTION 中的原型 PTEs，此时已经被修改为一个有效的值。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; ?? (char *)@$proc-&gt;ImageFileName</span><br><span class="line">char * 0x9a46b1b0</span><br><span class="line"> &quot;SectionViewTes&quot;</span><br><span class="line"></span><br><span class="line">kd&gt; k</span><br><span class="line"> # ChildEBP RetAddr  </span><br><span class="line">00 a14cf618 81a57d45 nt!MiResolveDemandZeroFault+0x743</span><br><span class="line">01 a14cf688 81a55ef0 nt!MiResolveProtoPteFault+0x5a9</span><br><span class="line">02 a14cf748 81a543af nt!MiDispatchFault+0x246</span><br><span class="line">03 a14cf7d0 81b88654 nt!MmAccessFault+0x232</span><br><span class="line"></span><br><span class="line">kd&gt; dd 0x8a2dd848 </span><br><span class="line">8a2dd848 022cb963 00000000 00000000 00000000</span><br><span class="line">8a2dd858 00000000 00000000 00000000 00000000</span><br><span class="line">8a2dd868 00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
+<p>单步调试执行完 <code>MiCompleteProtoPteFault</code> 之后，查看本地地址 0x900000 和远程地址 0xd00000，情况如下<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; dd 900000</span><br><span class="line">00900000  00000000 00000000 00000000 00000000</span><br><span class="line">00900010  00000000 00000000 00000000 00000000</span><br><span class="line"></span><br><span class="line">kd&gt; .process /p /i 8e93fa40</span><br><span class="line">kd&gt; ?? (char *)@$proc-&gt;ImageFileName</span><br><span class="line">char * 0x8e93fbb0</span><br><span class="line"> &quot;SectionTest2.e&quot;</span><br><span class="line">kd&gt; dd d00000</span><br><span class="line">00d00000  ???????? ???????? ???????? ????????</span><br><span class="line">00d00010  ???????? ???????? ???????? ????????</span><br></pre></td></tr></table></figure></p>
+<p>对 SectionTest2 的 <code>MmAccessFault</code> 下断点，访问其地址 0xd00000 ，函数检查原型 PTE，知道页面已经在物理内存了，于是让 SectionTest2 地址 0xd00000 的 PTE 也指向此物理页面，从而两个进程访问的是同一个物理页面。查看地址以及地址对应的 PTE</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">kd&gt; ?? (char *)@$proc-&gt;ImageFileName</span><br><span class="line">char * 0x8e93fbb0</span><br><span class="line"> &quot;SectionTest2.e&quot;</span><br><span class="line"></span><br><span class="line">kd&gt; dd d00000</span><br><span class="line">00d00000  00000000 00000000 00000000 00000000</span><br><span class="line">00d00010  00000000 00000000 00000000 00000000</span><br><span class="line"></span><br><span class="line">kd&gt; dd c0005480</span><br><span class="line">c0005480  022cb825 00000000 00000000 00000000</span><br><span class="line">c0005490  00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这次的内容涉及到了很多内核部分代码，调试起来很复杂，前后断断续续花了很多时间，不过也算是解决了我心中的一点疑惑。</p>
+<p>最后在调试的时候被川神批评了<del>看起来这些东西意思不大的样子</del></p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p>[1] <a href="https://kelvinhack127.blogspot.com/2016/03/windows-sectionmmcreatesectionmmmapview.html" target="_blank" rel="noopener">https://kelvinhack127.blogspot.com/2016/03/windows-sectionmmcreatesectionmmmapview.html</a><br>[2] <a href="https://blog.csdn.net/qq_18218335/article/details/65626899" target="_blank" rel="noopener">https://blog.csdn.net/qq_18218335/article/details/65626899</a><br>[3] <a href="https://blog.csdn.net/qq_18218335/article/details/65635039" target="_blank" rel="noopener">https://blog.csdn.net/qq_18218335/article/details/65635039</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="ckqyxnmda000jhkuqzxt99amx" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Bypass ACG With OpenProcess
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Bypass ACG With UnmapViewOfFile</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

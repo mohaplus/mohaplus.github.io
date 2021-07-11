@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Too young, Too simple, Sometime naive">
+<meta property="og:type" content="website">
+<meta property="og:title" content="么哈么哈">
+<meta property="og:url" content="http://mohamoha.club/page/2/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="Too young, Too simple, Sometime naive">
+<meta property="og:locale" content="default">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="么哈么哈">
+<meta name="twitter:description" content="Too young, Too simple, Sometime naive">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-Bypass_ACG_with_OpenProcess" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/" class="article-date">
+  <time datetime="2018-06-02T16:00:00.000Z" itemprop="datePublished">2018-06-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/06/03/Bypass_ACG_with_OpenProcess/">Bypass ACG With OpenProcess</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200" target="_blank" rel="noopener">https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200</a> p0 研究者 ifratric 提出的一种绕过 ACG 保护的方案，即通过修改同一 AppContainer 中的其他 MicrosoftEdgeCp.exe 进程的内存来阻止另一个进程开启 ACG 保护</p>
+<h1 id="ACG-的开启"><a href="#ACG-的开启" class="headerlink" title="ACG 的开启"></a>ACG 的开启</h1><p>进程的 ACG 需要调用函数 <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/hh769088(v=vs.85" target="_blank" rel="noopener"><code>SetProcessMitigationPolicy</code></a>.aspx) 或者 <a href="http://hex.pp.ua/nt/NtSetInformationProcess.php" target="_blank" rel="noopener"><code>ZwSetInformationProcess</code></a> 来开启。这里我们主要关注 <code>SetProcessMitigationPolicy</code> ,函数的原型如下</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">BOOL WINAPI <span class="title">SetProcessMitigationPolicy</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">  _In_ PROCESS_MITIGATION_POLICY MitigationPolicy,</span></span></span><br><span class="line"><span class="function"><span class="params">  _In_ PVOID                     lpBuffer,</span></span></span><br><span class="line"><span class="function"><span class="params">  _In_ SIZE_T                    dwLength</span></span></span><br><span class="line"><span class="function"><span class="params">)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>第一个参数指定要设定的缓解策略类型，第二个参数根据第一个参数指定不同的 Policy 数据，第三个参数指定第二个参数的长度。</p>
+        
+          <p class="article-more-link">
+            <a href="/2018/06/03/Bypass_ACG_with_OpenProcess/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/" data-id="ckqyxnmbm0003hkuq93uz43gp" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/06/03/Bypass_ACG_with_OpenProcess/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-MapViewOfSection_and_Shared_Memory" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/" class="article-date">
+  <time datetime="2018-05-21T16:00:00.000Z" itemprop="datePublished">2018-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/05/22/MapViewOfSection_and_Shared_Memory/">MapViewOfSection and Shared-Memory</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>之前对于 <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#%E8%A1%A5%E4%B8%81">UnmapViewOfFile</a> 的分析中留了一个坑，即使用 SECTION 在进程之间共享内存的情况。拖了几个星期，终于把这个问题稍稍搞明白了一点。这里将相关的知识点记录一下。</p>
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><p>微软对于 UnmapViewOfFile 绕过 ACG 这种攻击方式的补丁是在 JIT 进程端移除了 VirtualAlloc/VirtualProtect 操作，从而切断了将其他属性内存转化为可执行页的路径。于是笔者产生了疑问：在不使用 VirtualAlloc/VirtualProtect 的情况下 Render 中的内存页是如何 commit 的</p>
+<p>在打上补丁之后，内存的分配操作只剩下 AllocLocalView ，查看函数源码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AllocLocalView&#123;</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">    process = GetCurrentProcess();</span><br><span class="line">    NtdllLibrary::Instance-&gt;MapViewOfSection(sectionHandle, process, &amp;address, <span class="literal">NULL</span>, viewSize, &amp;mapOffset, &amp;viewSize, NtdllLibrary::ViewUnmap, <span class="literal">NULL</span>, flags);</span><br><span class="line">    <span class="comment">//...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>代码中调用 MapViewOfSection 在当前进程中为这个用来共享内存的 Section ,其中 CommitSize 参数为 viewSize。实际调试 Edge， 在这个调用上下断点 JIT 进程断在此处，此时 Render 中的虚拟内存地址已经由之前那次 Map 操作确定了，查看 Render 进程中对应的虚拟地址空间</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0:001&gt; dd  1ec`e6240000 </span><br><span class="line">000001ec`e6240000  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240010  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240020  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240030  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240040  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240050  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240060  ???????? ???????? ???????? ????????</span><br><span class="line">000001ec`e6240070  ???????? ???????? ???????? ????????</span><br></pre></td></tr></table></figure>
+<p>执行这次函数调用，再次查看 Render 进程地址，发现此时对应的虚拟地址已经映射了物理地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0:001&gt; dd  1ec`e6240000 </span><br><span class="line">000001ec`e6240000  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240010  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240020  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240030  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240040  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240050  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240060  00000000 00000000 00000000 00000000</span><br><span class="line">000001ec`e6240070  00000000 00000000 00000000 00000000</span><br></pre></td></tr></table></figure>
+        
+          <p class="article-more-link">
+            <a href="/2018/05/22/MapViewOfSection_and_Shared_Memory/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/" data-id="ckqyxnmda000jhkuqzxt99amx" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/05/22/MapViewOfSection_and_Shared_Memory/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Bypass_ACG_with_UnmapViewOfFile" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" class="article-date">
+  <time datetime="2018-04-24T16:00:00.000Z" itemprop="datePublished">2018-04-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/">Bypass ACG With UnmapViewOfFile</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200" target="_blank" rel="noopener">https://bugs.chromium.org/p/project-zero/issues/detail?id=1435&amp;can=1&amp;q=&amp;start=1200</a> p0 研究者 ifratric 提出的一种绕过 ACG 保护的方案，即通过调用函数 <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa366882.aspx" target="_blank" rel="noopener"><code>UnmapViewOfFile</code></a> 来预先修改内存块内容，从而在可执行页上加入攻击者自定义代码。</p>
+<h1 id="Remote-JIT"><a href="#Remote-JIT" class="headerlink" title="Remote JIT"></a>Remote JIT</h1><p>开启了 ACG 保护之后进程将不能够申请未签名代码页。但是现代浏览器为了提高响应效率，都提供了 JIT 功能用于把 JS 代码编译成本地代码。该功能的实现依赖于在进程空间中动态的生成未签名的代码页。为了同时支持 ACG 和 JIT，Chakra 将其 JIT 功能移动到一个单独的进程中，该进程在其独立的沙箱中运行。JIT进程负责将 JavaScript 编译为本地代码并将其映射到请求进程。渲染进程本身不允许直接映射或修改其自己的JIT代码页。</p>
+<h2 id="JIT-地址管理"><a href="#JIT-地址管理" class="headerlink" title="JIT 地址管理"></a>JIT 地址管理</h2><p>（由于笔者对于 ACG 的分析基于的 Edge 版本较老因此，可能有些地方不匹配）<br>远程分配的地址空间来源于本进程中的 <code>PreReservedSectionAllocWrapper</code> 对象，该对象在 JIT 进程启动时进行初始化，专门负责管理那些远程保留空间。对象的结构简单表示如下<br><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PreReservedSectionAllocWrapper</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">    BVStatic&lt;PreReservedAllocationSegmentCount&gt;     freeSegments;                  <span class="comment">//0x00             // 用于索引整块内存空间，检查内存状态</span></span><br><span class="line">    LPVOID                                          preReservedStartAddress;       <span class="comment">//0x200            // 当前应该分配出去的地址</span></span><br><span class="line">    CriticalSection                                 cs;                            <span class="comment">//0x208</span></span><br><span class="line">                        |-  PRTL_CRITICAL_SECTION_DEBUG DebugInfo;                 <span class="comment">//0x208</span></span><br><span class="line">                        |-  LONG LockCount;                                        <span class="comment">//0x210</span></span><br><span class="line">                        |-  LONG RecursionCount;                                   <span class="comment">//0x214</span></span><br><span class="line">                        |-  HANDLE OwningThread;                                   <span class="comment">//0x218   from the thread's ClientId-&gt;UniqueThread</span></span><br><span class="line">                        |-  HANDLE LockSemaphore;                                  <span class="comment">//0x220</span></span><br><span class="line">                        |-  ULONG_PTR SpinCount                                    <span class="comment">//0x228                                                                      </span></span><br><span class="line">    HANDLE process;                                                                <span class="comment">//0x230             // 远程进程句柄</span></span><br><span class="line">    HANDLE section;                                                                <span class="comment">//0x238             // 远程地址 section 句柄</span></span><br><span class="line">    EnsurePreReservedRegionInternal();                                             <span class="comment">// 用于检查是否还存在可管理的 RESERVE 属性内存，若不存在，则在分配之</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure></p>
+        
+          <p class="article-more-link">
+            <a href="/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/" data-id="ckqyxnmbr0004hkuqdd2z266d" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/04/25/Bypass_ACG_with_UnmapViewOfFile/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-VS_Extension" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/11/VS_Extension/" class="article-date">
+  <time datetime="2018-03-10T16:00:00.000Z" itemprop="datePublished">2018-03-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/11/VS_Extension/">Visual Studio 注释扩展</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在阅读大型工程源代码的时候经常需要根据自己的理解为代码添加某些注释，直接在源码文件中的修改有可能会导致工程重新编译，git 更新代码时产生冲突等情况，更有甚者一旦代码通过 git 更新之后，自己添加的注释将不会出现在新代码中；如果将注释写在源码之外的文件中，在以后查阅和对照时又会有其他新的麻烦。基于以上需求，笔者实现了一个 Visual Studio 中的注释插件，可以在源码文件之外独立添加注释，并且在查看源码时会在对应的位置显示注释。</p>
+<p>效果如图所示</p>
+<p><img src="\VsExtension\15.png" alt></p>
+<p>在编写过程中参考了<a href="http://michaelscodingspot.com/2017/10/08/visual-studio-2017-extension-development-tutorial-part-1/" target="_blank" rel="noopener">这篇文章</a> 中插件的实现。感谢这位作者的分享。</p>
+<h2 id="Visual-Studio-Extension"><a href="#Visual-Studio-Extension" class="headerlink" title="Visual Studio Extension"></a>Visual Studio Extension</h2><p>微软为 vs 扩展的开发者提供了一套完整的<a href="https://docs.microsoft.com/zh-cn/visualstudio/extensibility/index" target="_blank" rel="noopener">开发文档</a>，以便开发者可以根据自己的需求扩展 Visual Studio 的功能。理论上而言可用的扩展点如下</p>
+<ul>
+<li>命令和菜单</li>
+<li>工具窗口</li>
+<li>编辑器窗口</li>
+<li>语言服务</li>
+<li>项目扩展</li>
+<li>用户设置</li>
+<li>属性和属性窗口</li>
+<li>Visual Studio 独立 Shell</li>
+</ul>
+<p>其他更多关于 VS 扩展的内容可以参见上面的开发文档，其中提供了大量的例子可以参考。</p>
+<h1 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h1><p>下面笔者将一步一步记录下整个插件的编写过程，以便之后改进和复现。</p>
+        
+          <p class="article-more-link">
+            <a href="/2018/03/11/VS_Extension/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/03/11/VS_Extension/" data-id="ckqyxnmcr000dhkuq9f64ks48" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/03/11/VS_Extension/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Edge_thredhold" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/01/13/Edge_thredhold/" class="article-date">
+  <time datetime="2018-01-12T16:00:00.000Z" itemprop="datePublished">2018-01-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/01/13/Edge_thredhold/">也谈 “Spectre” CPU 漏洞</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>元旦回来 P0 就放出了 2018 年的第一个大新闻，多款处理器被曝出存在安全漏洞可以泄露某些敏感信息，P0 将其分别命名为 “Spectre” 和 “MeltDown”。其中 “Spectre” 漏洞是由于 CPU 的分支预测进而导致的缓存信息泄露，其效果可以越界读取某些内容。</p>
+<p>根据原理上来说 “Spectre” 是可以并且比较容易在浏览器中通过 js 相关技术实现攻击的，在 P0 的论文后也附加了一个 C 语言实现的 demo。出于对这种攻击理论上的认可我们开始尝试通过 js 来实现 “Spectre” 的漏洞利用。经过四天的研究我们终于 “全球首发” “Spectre” 漏洞在线检测工具，虽然依然很不完善但是效果却出乎我们所有人的意料。<a href="https://xlab.tencent.com/special/spectre/spectre_check.html" target="_blank" rel="noopener">检测工具地址</a></p>
+<p><img src="/Spectre/online.png" alt></p>
+<p>实现的代码全是 JS 因此可以直接通过前端获取，经过 Exp-sky 师傅的润色代码也大体上可读（ps：如果知道要放出来的话变量命名写的时候就不会那么随意了~ orz）。这里记录一下代码编写过程中的几个问题，以备以后查询。</p>
+        
+          <p class="article-more-link">
+            <a href="/2018/01/13/Edge_thredhold/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/01/13/Edge_thredhold/" data-id="ckqyxnmch000bhkuq15lnes0l" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/01/13/Edge_thredhold/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Decrypt_Pyc" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/27/Decrypt_Pyc/" class="article-date">
+  <time datetime="2017-12-26T16:00:00.000Z" itemprop="datePublished">2017-12-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/27/Decrypt_Pyc/">Decrypt PYC</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="PYC"><a href="#PYC" class="headerlink" title="PYC"></a>PYC</h2><p>PYC 是 Python 文件经过编译之后形成的一种文件格式，可以提高加载效率用来为其他 Python 程序提供函数接口等功能。</p>
+<p>其文件格式如下，主要由头部四字节的 Magic 字段和 4字节的 timestap 以及 r_object 结构组成。r_object 对象是 PYC 文件的主要内容，包括了 python 文件所编译形成的 Opcode、常量、值等一系列信息。其更具体的信息可以在 python 自带的 marshal 库中找到 <code>Python/marshal.c</code><br>
+        
+          <p class="article-more-link">
+            <a href="/2017/12/27/Decrypt_Pyc/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/12/27/Decrypt_Pyc/" data-id="ckqyxnmc10007hkuqwoimr7gy" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/12/27/Decrypt_Pyc/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Bypass_CFG_Through_MRDATA" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/" class="article-date">
+  <time datetime="2017-12-22T16:00:00.000Z" itemprop="datePublished">2017-12-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/23/Bypass_CFG_Through_MRDATA/">Bypass CFG Through MRDATA</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://alex-ionescu.com/publications/euskalhack/euskalhack2017-cfg.pdf" target="_blank" rel="noopener">http://alex-ionescu.com/publications/euskalhack/euskalhack2017-cfg.pdf</a></p>
+<p>这是 Alex 大神的一篇演讲，介绍了一种新的绕过 CFG 的思路</p>
+<h2 id="MRDATA"><a href="#MRDATA" class="headerlink" title="MRDATA"></a>MRDATA</h2><p>从 Win8.1 开始微软为 CFG 的 bitmap 添加了保护机制，将 bitmap 指针等一系列全局变量放置于文件的 <code>.mrdata</code> 区段，这是一个新的 PE 区段，用于保存那些易变的只读数据。</p>
+<p>这个区段在模块加载时被标记为 PAGE_READONLY ，理论上无法被修改。</p>
+<p>但是某些时候 ntdll 需要去修改 <code>.mrdata</code> 区段中的某些数据。为此Windows 提供了一个新的 API : <code>LdrProtectMrdata( bProtect )</code>函数用于设置 <code>.mrdata</code>区段是否开启保护 ，参数传入 0 表示 unprotect，传入 1 表示 protect。</p>
+<p>很明显在模块加载和卸载时都会调用这个函数来设置一些数据，然而有些函数在运行时也会调用这个 API。</p>
+<p>例如<code>SetProtectedPolicy</code> 和 <code>GetProtectedPolicy</code>就会用到它。这两个函数用于设置和获取进程的保护策略，这些策略保存在通过 <code>LdrMrdataHeap</code> 分配的内存中，即策略处于 <code>.mrdata</code> 区段</p>
+        
+          <p class="article-more-link">
+            <a href="/2017/12/23/Bypass_CFG_Through_MRDATA/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/" data-id="ckqyxnmbj0002hkuqw99qpyaa" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/12/23/Bypass_CFG_Through_MRDATA/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Raspberry_Pi" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/12/05/Raspberry_Pi/" class="article-date">
+  <time datetime="2017-12-04T16:00:00.000Z" itemprop="datePublished">2017-12-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/12/05/Raspberry_Pi/">RaspBerry Pi 折腾笔记</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开箱"><a href="#开箱" class="headerlink" title="开箱"></a>开箱</h2><p>从 salt 大佬那里拿到一个树莓派，开始开箱进行折腾。</p>
+<p>首先要进行系统的安装，这里选择的是树莓派上的一个 Ubuntu 系统</p>
+<p><img src="/raspberry/download.png" alt="download"></p>
+<p>一开始准备使用 PowerISO 直接把这个系统当作一个 PE 烧到 sd 卡里，但是烧进去了之后发现没有办法成功启动，所以只好老老实实使用官方推荐的工具 Win32DiskImager 来安装<br>
+        
+          <p class="article-more-link">
+            <a href="/2017/12/05/Raspberry_Pi/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/12/05/Raspberry_Pi/" data-id="ckqyxnmd0000hhkuqiit2hyja" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/12/05/Raspberry_Pi/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Image_Capturer" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/11/01/Image_Capturer/" class="article-date">
+  <time datetime="2017-10-31T16:00:00.000Z" itemprop="datePublished">2017-11-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/11/01/Image_Capturer/">Image Capture</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>在申请这个博客的时候，定了一个小目标要半个月发一篇文章，结果发现如果不发漏洞分析的话好像很难有其他的文章。在这个月的最后一天终于在 5alt 大佬的帮助和鄙视下完成了一个小爬虫工具。现写一篇文章记录一下这个工具的整个开发过程。</p>
+        
+          <p class="article-more-link">
+            <a href="/2017/11/01/Image_Capturer/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/11/01/Image_Capturer/" data-id="ckqyxnmcm000chkuqkybksn63" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/11/01/Image_Capturer/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Bypass_ACG" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/09/15/Bypass_ACG/" class="article-date">
+  <time datetime="2017-09-14T16:00:00.000Z" itemprop="datePublished">2017-09-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/09/15/Bypass_ACG/">Bypass ACG</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>P0 的研究员披露了一种可以绕过微软最新推出的 ACG 保护的方法，同时 yuange 也表示他的方法就是这个。这篇文章根据 P0 上披露的细节实际对 Edge 进程进行分析，学习在获取了读写执行的前提下如何绕过 ACG 的保护。</p>
+        
+          <p class="article-more-link">
+            <a href="/2017/09/15/Bypass_ACG/#more">Read More</a>
+          </p>
+        
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2017/09/15/Bypass_ACG/" data-id="ckqyxnmb00000hkuqje564gzh" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2017/09/15/Bypass_ACG/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    <a class="extend prev" rel="prev" href="/">&laquo; __('prev')</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="extend next" rel="next" href="/page/3/">__('next') &raquo;</a>
+  </nav>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

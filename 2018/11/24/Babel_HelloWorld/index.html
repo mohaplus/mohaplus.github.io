@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>Babel HelloWorld | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="由于一个偶然的契机，笔者接触到了一个 js 处理神器 ———— babel，可以用来方便快速的处理 js 代码，实现自定义功能。笔者花了几天的时间对 babel 的实现原理和使用方法进行了简单的梳理，特此记录，以备之后的学习。 babel 的官方网站上有着较为完备的文档，其 GitHub 上也有各个语言版本的详细使用手册，笔者在学习过程中主要参考了以下两个网站。 https://www.sitep">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Babel HelloWorld">
+<meta property="og:url" content="http://mohamoha.club/2018/11/24/Babel_HelloWorld/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="由于一个偶然的契机，笔者接触到了一个 js 处理神器 ———— babel，可以用来方便快速的处理 js 代码，实现自定义功能。笔者花了几天的时间对 babel 的实现原理和使用方法进行了简单的梳理，特此记录，以备之后的学习。 babel 的官方网站上有着较为完备的文档，其 GitHub 上也有各个语言版本的详细使用手册，笔者在学习过程中主要参考了以下两个网站。 https://www.sitep">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-11-24T15:40:28.564Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Babel HelloWorld">
+<meta name="twitter:description" content="由于一个偶然的契机，笔者接触到了一个 js 处理神器 ———— babel，可以用来方便快速的处理 js 代码，实现自定义功能。笔者花了几天的时间对 babel 的实现原理和使用方法进行了简单的梳理，特此记录，以备之后的学习。 babel 的官方网站上有着较为完备的文档，其 GitHub 上也有各个语言版本的详细使用手册，笔者在学习过程中主要参考了以下两个网站。 https://www.sitep">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Babel_HelloWorld" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/11/24/Babel_HelloWorld/" class="article-date">
+  <time datetime="2018-11-23T16:00:00.000Z" itemprop="datePublished">2018-11-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Babel HelloWorld
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>由于一个偶然的契机，笔者接触到了一个 js 处理神器 ———— babel，可以用来方便快速的处理 js 代码，实现自定义功能。笔者花了几天的时间对 babel 的实现原理和使用方法进行了简单的梳理，特此记录，以备之后的学习。</p>
+<p>babel 的官方网站上有着较为完备的文档，其 GitHub 上也有各个语言版本的详细使用手册，笔者在学习过程中主要参考了以下两个网站。</p>
+<p><a href="https://www.sitepoint.com/understanding-asts-building-babel-plugin/" target="_blank" rel="noopener">https://www.sitepoint.com/understanding-asts-building-babel-plugin/</a></p>
+<p><a href="https://github.com/jamiebuilds/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md#toc-stages-of-babel" target="_blank" rel="noopener">https://github.com/jamiebuilds/babel-handbook/blob/master/translations/zh-Hans/plugin-handbook.md#toc-stages-of-babel</a></p>
+<h2 id="基础"><a href="#基础" class="headerlink" title="基础"></a>基础</h2><p>Babel 是一个用于操作 js 的框架，它为用户提供了方便的接口可以通过插件自定义操作。</p>
+<p>Babel 的主要思想就是通过操作 js 代码对应的 AST 树得到另一个符合语法的 js。</p>
+<a id="more"></a>
+<p>Babel 很典型的分为了以下几个模块 </p>
+<ul>
+<li><p>babylon，一个从Acorn项目fork出来的解析器 parser</p>
+</li>
+<li><p>traverse。 Babel 的便利和操作模块，用来遍历 ast 和操作 ast，有点类似于操作 DOM 对象的 DOMWriter </p>
+</li>
+<li><p>types 相当于一个语法库，与自己实现的 node 类似，包含了所有的基本语法。一个典型的节点定义如下</p>
+  <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">    defineType(&quot;BinaryExpression&quot;, &#123;</span><br><span class="line">  builder: [&quot;operator&quot;, &quot;left&quot;, &quot;right&quot;],</span><br><span class="line">  fields: &#123;</span><br><span class="line">    operator: &#123;</span><br><span class="line">      validate: assertValueType(&quot;string&quot;)</span><br><span class="line">    &#125;,</span><br><span class="line">    left: &#123;</span><br><span class="line">      validate: assertNodeType(&quot;Expression&quot;)</span><br><span class="line">    &#125;,</span><br><span class="line">    right: &#123;</span><br><span class="line">      validate: assertNodeType(&quot;Expression&quot;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  visitor: [&quot;left&quot;, &quot;right&quot;],</span><br><span class="line">  aliases: [&quot;Binary&quot;, &quot;Expression&quot;]</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>Definitions ， types 模块中对于节点类型的定义</li>
+<li>Builder， types 模块中各类型节点的构造器</li>
+<li>Validators， types 模块中对于节点各个字段的规范，规范有两种形式<ul>
+<li>第一种是 isX</li>
+<li>第二种是 assertX</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>generator ， 生成器模块，根据 ast 生成代码</p>
+</li>
+<li>template， 模版模块，类似模版字符，可以作为模版生成字符串</li>
+</ul>
+<h2 id="遍历"><a href="#遍历" class="headerlink" title="遍历"></a>遍历</h2><p>Babel 提供了插件接口，用户可以根据自己的需求开发不同功能的插件</p>
+<p>插件是一个独立的 js 模块，导出一个函数，接受 babel 作为参数。为了调用方便通常写成这样的形式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">export default function(&#123; types: t &#125;) &#123;</span><br><span class="line">  return &#123;</span><br><span class="line">    visitor: &#123;</span><br><span class="line">      // visitor contents</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">// 使用对象结构赋值直接获取 babel.type</span><br></pre></td></tr></table></figure>
+<p>Babel 使用访问者模式设计开发，插件在其中就担当访问者。插件最后的返回值也就是一个 visitor 对象，访问者对象中包含一系列函数，可以在访问到这个制定节点前后进行调用。</p>
+<p>Babel 的一个重要功能就是用来遍历 AST 和操作替换其中的节点。也就是 traverse 模块主要完成的功能。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">visitor: &#123;</span><br><span class="line">  BinaryExpression(path) &#123;</span><br><span class="line">    if (path.node.operator !== &quot;===&quot;) &#123;</span><br><span class="line">      return;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h3><p>这里涉及两个个关键的数据结构 path 和 state。</p>
+<p>节点与节点之间相互链接形成一棵树，作为数据表示，树结构上不宜出现过多的信息，因此使用 path 结构表示当前节点与其他节点之间的关系（这里 github 文档中的说明好像有些问题）</p>
+<p>一个 path 的结构大概如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  &quot;parent&quot;: &#123;...&#125;,     // 父节点</span><br><span class="line">  &quot;node&quot;: &#123;...&#125;,       // 当前节点</span><br><span class="line">  &quot;hub&quot;: &#123;...&#125;,        // </span><br><span class="line">  &quot;contexts&quot;: [],</span><br><span class="line">  &quot;data&quot;: &#123;&#125;,</span><br><span class="line">  &quot;shouldSkip&quot;: false,</span><br><span class="line">  &quot;shouldStop&quot;: false,</span><br><span class="line">  &quot;removed&quot;: false,</span><br><span class="line">  &quot;state&quot;: null,</span><br><span class="line">  &quot;opts&quot;: null,        // 注册在这个 path 上的观察者</span><br><span class="line">  &quot;skipKeys&quot;: null,</span><br><span class="line">  &quot;parentPath&quot;: null,  // 父节点的 path</span><br><span class="line">  &quot;context&quot;: null,</span><br><span class="line">  &quot;container&quot;: null,   // 当前节点所在的容器节点</span><br><span class="line">  &quot;listKey&quot;: null,</span><br><span class="line">  &quot;inList&quot;: false,</span><br><span class="line">  &quot;parentKey&quot;: null,</span><br><span class="line">  &quot;key&quot;: null,</span><br><span class="line">  &quot;scope&quot;: null,       // scope 结构，表示节点的作用空间</span><br><span class="line">  &quot;type&quot;: null,</span><br><span class="line">  &quot;typeAnnotation&quot;: null</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>还包括其他和插入删除相关的函数。</p>
+<p>用一个例子可以看出这里的关系。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">function squre(n)&#123;</span><br><span class="line">    return n*n;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">==》</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;type&quot;: &quot;Program&quot;,</span><br><span class="line">  &quot;body&quot;: [</span><br><span class="line">    &#123;</span><br><span class="line">      &quot;type&quot;: &quot;FunctionDeclaration&quot;,</span><br><span class="line">      &quot;id&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;Identifier&quot;,</span><br><span class="line">        &quot;name&quot;: &quot;squre&quot;</span><br><span class="line">      &#125;,</span><br><span class="line">      &quot;params&quot;: [</span><br><span class="line">        &#123;</span><br><span class="line">          &quot;type&quot;: &quot;Identifier&quot;,</span><br><span class="line">          &quot;name&quot;: &quot;n&quot;</span><br><span class="line">        &#125;</span><br><span class="line">      ],</span><br><span class="line">      &quot;body&quot;: &#123;</span><br><span class="line">        &quot;type&quot;: &quot;BlockStatement&quot;,</span><br><span class="line">        &quot;body&quot;: [</span><br><span class="line">          &#123;</span><br><span class="line">            &quot;type&quot;: &quot;ReturnStatement&quot;,</span><br><span class="line">            &quot;argument&quot;: &#123;</span><br><span class="line">              &quot;type&quot;: &quot;BinaryExpression&quot;,</span><br><span class="line">              &quot;left&quot;: &#123;</span><br><span class="line">                &quot;type&quot;: &quot;Identifier&quot;,</span><br><span class="line">                &quot;name&quot;: &quot;n&quot;</span><br><span class="line">              &#125;,</span><br><span class="line">              &quot;operator&quot;: &quot;*&quot;,</span><br><span class="line">              &quot;right&quot;: &#123;</span><br><span class="line">                &quot;type&quot;: &quot;Identifier&quot;,</span><br><span class="line">                &quot;name&quot;: &quot;n&quot;</span><br><span class="line">              &#125;</span><br><span class="line">            &#125;</span><br><span class="line">          &#125;</span><br><span class="line">        ]</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  &quot;sourceType&quot;: &quot;module&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这段代码生成的 AST 中会有四个 Identifier 节点，分别是函数名，函数参数，函数体中的两处引用。</p>
+<p>查看第一个 Identifier 节点的 path，</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Path&#123;</span><br><span class="line">    parent: FunctionDeclaration</span><br><span class="line">    parentPath: FunctionDeclarationPath</span><br><span class="line">    container: FunctionDeclaration</span><br><span class="line">    scope: FunctionDeclarationScope</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二个 Identifier</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Path&#123;</span><br><span class="line">    parent: FunctionDeclaration</span><br><span class="line">    parentPath: FunctionDeclarationPath</span><br><span class="line">    container: Identifer   // self</span><br><span class="line">    scope: FunctionDeclarationScope</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第三个</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Path&#123;</span><br><span class="line">    parent: BinaryExpression</span><br><span class="line">    parentPath: BinaryExpressionPath</span><br><span class="line">    container: BinaryExpression  </span><br><span class="line">    scope: FunctionDeclarationScope</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>visitor 注册的函数实际接受的参数就是节点对应的 path。</p>
+<p>state 可以理解成一个全局变量，用于维护一些可以在回调函数之间传递的信息。默认情况下 state 中保存的是文件信息</p>
+<p>scope 用来指示变量的作用域信息，js 语言使用字典式作用域或者叫做<a href="https://en.wikipedia.org/wiki/Scope_(computer_science" target="_blank" rel="noopener">静态作用域</a>#Lexical_scoping_vs._dynamic_scoping)。<br>即外部作用域无法访问内部作用域的内容，内部可以访问外部。当创建一个引用时，这个引用就属于其当前的 scope，当然它也属于当前 scope 的上层 scope。</p>
+<p>scope 在对AST 节点做变更时十分有用。它可以保证新增引用的正确性。也可以找出一个变量在什么地方被引用了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  path: path,</span><br><span class="line">  block: path.node,</span><br><span class="line">  parentBlock: path.parent,</span><br><span class="line">  parent: parentScope,</span><br><span class="line">  bindings: [...]     // 绑定，在当前作用域内声明的引用</span><br><span class="line">  globals:  // 只有全局 scope 中会存的 全局变量</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>很显然上例中四个 Identifer 的 scope 指向的都是同一个 scope.</p>
+<p>bindings 是 scope 中存储的最重要的信息，这里记录了所有声明在这个 scope 中的变量及其引用情况。</p>
+<p>举例来说一个 functionNode，其 scope.bindings 中存储的就是这个函数参数以及参数在这个函数内的引用信息。</p>
+<p>通过 binding 何以很方便的访问一个变量的所有引用 ，但是这里会有一个问题，即只有取值的时候才会算作是引用，而对于赋值操作则不会记录在 <code>referencePaths</code> 字段，转而存在 <code>constantViolations</code> 字段中</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 替换 name</span></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">update_name</span>(<span class="params">path, binding, name</span>)</span>&#123;</span><br><span class="line">    binding.identifier.name = name;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(binding.referenced)&#123;</span><br><span class="line">      <span class="keyword">for</span>(<span class="keyword">let</span> i =<span class="number">0</span>; i&lt;binding.references; i++)&#123;</span><br><span class="line">        binding.referencePaths[i].node.name = name;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<h3 id="操作"><a href="#操作" class="headerlink" title="操作"></a>操作</h3><p>为了得到一个AST节点的属性值，我们一般先访问到该节点，然后利用 <code>path.node.property</code> 方法即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">BinaryExpression(path) &#123;</span><br><span class="line">  path.node.left;</span><br><span class="line">  path.node.right;</span><br><span class="line">  path.node.operator;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>有时需要从一个节点向上遍历,可以调用函数 findParent 或者 find ，函数接受一个回调函数作为参数，以便用户控制</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">path.findParent((path) =&gt; path.isObjectExpression());</span><br><span class="line">path.find((path) =&gt; path.isObjectExpression());</span><br></pre></td></tr></table></figure>
+<p>除遍历节点外，最常用的 AST 操作是替换节点，此时可以使用函数 repalceWith 或者 replaceWithMultiple。当然也可以使用 replaceWithSourceString 直接用 js 代码字符串替换之（github 手册上的例子会导致问题）</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BinaryExpression(path) &#123;</span><br><span class="line">  path.replaceWith(</span><br><span class="line">    if (path.node.operator === &quot;*&quot;)</span><br><span class="line">    t.binaryExpression(&quot;**&quot;, path.node.left, path.node.right)</span><br><span class="line">  );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>使用 insertBefore 、insertAfter、pushContainer、unshiftContainer 来插入节点。调用 remove 来清除节点。</p>
+<h2 id="运行"><a href="#运行" class="headerlink" title="运行"></a>运行</h2><p>运行 Babel 有多种方式</p>
+<p>最直接的一种就是通过命令行直接运行，目前测试时也选用这种方法 <code>node_modules/.bin/babel test.js --plugins=./plugins/firstplugin</code></p>
+<p>如果需要以编程的形式使用 babel 则需要额外安装 <code>npm install babel-core</code> </p>
+<p>直接按照 node 的调用规范调用其中的模块 </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">var parser =  require(&quot;@babel/parser&quot;);</span><br><span class="line">var traverse = require(&quot;@babel/traverse&quot;).default;</span><br><span class="line"></span><br><span class="line">const code = `function square(n) &#123;</span><br><span class="line">  return n * n;</span><br><span class="line">&#125;`;</span><br><span class="line"></span><br><span class="line">const ast = parser.parse(code);</span><br><span class="line"></span><br><span class="line">traverse(ast, &#123;</span><br><span class="line">  enter(path) &#123;</span><br><span class="line">    if (path.isIdentifier(&#123; name: &quot;n&quot; &#125;)) &#123;</span><br><span class="line">      path.node.name = &quot;x&quot;;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>或者更简单的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">babel = require(@babel/core)</span><br><span class="line">const filename = &quot;example.js&quot;;</span><br><span class="line">const code = fs.readFileSync(filename, &quot;utf8&quot;);</span><br><span class="line"></span><br><span class="line">// Load and compile file normally, but skip code generation.</span><br><span class="line">const &#123; ast &#125; = babel.transformSync(code, &#123; filename, ast: true, code: false &#125;);</span><br><span class="line"></span><br><span class="line">// Minify the file in a second pass and generate the output code here.</span><br><span class="line">const &#123; code, map &#125; = babel.transformFromAstSync(ast, code, &#123;</span><br><span class="line">  filename,</span><br><span class="line">  presets: [&quot;minify&quot;],</span><br><span class="line">  babelrc: false,</span><br><span class="line">  configFile: false,</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<h2 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h2><p>Babel 提供了非常强大的接口，使用这些接口我们可以实现很多非常强大的功能</p>
+<h3 id="变量规范化"><a href="#变量规范化" class="headerlink" title="变量规范化"></a>变量规范化</h3><p>变量规范化的目的是为了方便的区分函数，（常量）和普通变量</p>
+<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><p><a href="http://coderlt.coding.me/2017/05/02/babel-readme/" target="_blank" rel="noopener">http://coderlt.coding.me/2017/05/02/babel-readme/</a></p>
+<p><a href="https://www.kancloud.cn/digest/babel/217106" target="_blank" rel="noopener">https://www.kancloud.cn/digest/babel/217106</a></p>
+<p><a href="https://juejin.im/entry/59ba1a3c5188255e723b8cae" target="_blank" rel="noopener">https://juejin.im/entry/59ba1a3c5188255e723b8cae</a></p>
+<p><a href="https://www.h5jun.com/post/babel-for-es6-and-beyond.html" target="_blank" rel="noopener">https://www.h5jun.com/post/babel-for-es6-and-beyond.html</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2018/11/24/Babel_HelloWorld/" data-id="ckqyxnmbf0001hkuquha7yidg" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2018/11/24/Babel_HelloWorld/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2019/01/06/AST_Fuzzer/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          AST Fuzz —— a New Kind of Fuzzer
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/09/07/EVM_Simulator/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">EVM Simulator</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2018/11/24/Babel_HelloWorld/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

